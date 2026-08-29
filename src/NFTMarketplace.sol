@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 import {INFTMarketplace} from "./interfaces/INFTMarketplace.sol";
 
 /**
  * @title NFTMarketplace
- * @notice Stub Fase 1: expone la API del marketplace; la lógica se implementa en fases 2+.
- * @dev Las mutaciones revierten con `NotImplemented` para que los tests Foundry fallen en rojo (TDD).
+ * @notice Marketplace NFT con escrow. Fase 2: `listItem` + `getListing` implementados.
+ * @dev `cancelListing` / `buyItem` siguen en stub (`NotImplemented`) hasta fases 3–4.
  */
 contract NFTMarketplace is INFTMarketplace, IERC721Receiver {
-    /// @notice Stub aún no implementado (solo Fase 1).
+    /// @notice Stub aún no implementado (fases posteriores).
     error NotImplemented();
 
     /// @notice Fee de protocolo en basis points (denominador 10_000).
@@ -20,19 +21,39 @@ contract NFTMarketplace is INFTMarketplace, IERC721Receiver {
     /// @notice Destinatario del fee de protocolo.
     address public immutable feeRecipient;
 
+    /// @notice Listings activos: colección => tokenId => Listing.
+    mapping(address nftAddress => mapping(uint256 tokenId => Listing)) private _listings;
+
     /**
      * @notice Configura fee de protocolo y vault.
      * @param feeBps_ Fee en basis points.
-     * @param feeRecipient_ Receptor del fee (`!= address(0)` en fases posteriores).
+     * @param feeRecipient_ Receptor del fee.
      */
     constructor(uint256 feeBps_, address feeRecipient_) {
         feeBps = feeBps_;
         feeRecipient = feeRecipient_;
     }
 
-    /// @inheritdoc INFTMarketplace
-    function listItem(address, uint256, uint256) external pure {
-        revert NotImplemented();
+    /**
+     * @inheritdoc INFTMarketplace
+     * @dev Checks: price > 0, caller = owner. Effects: guarda listing. Interactions: escrow vía `safeTransferFrom`.
+     */
+    function listItem(address nftAddress, uint256 tokenId, uint256 price) external {
+        if (price == 0) revert ZeroPrice();
+
+        IERC721 nft = IERC721(nftAddress);
+        if (nft.ownerOf(tokenId) != msg.sender) revert NotItemOwner();
+
+        _listings[nftAddress][tokenId] = Listing({
+            seller: msg.sender,
+            nftAddress: nftAddress,
+            tokenId: tokenId,
+            price: price
+        });
+
+        nft.safeTransferFrom(msg.sender, address(this), tokenId);
+
+        emit ItemListed(msg.sender, nftAddress, tokenId, price);
     }
 
     /// @inheritdoc INFTMarketplace
@@ -46,8 +67,8 @@ contract NFTMarketplace is INFTMarketplace, IERC721Receiver {
     }
 
     /// @inheritdoc INFTMarketplace
-    function getListing(address, uint256) external pure returns (Listing memory) {
-        revert NotImplemented();
+    function getListing(address nftAddress, uint256 tokenId) external view returns (Listing memory) {
+        return _listings[nftAddress][tokenId];
     }
 
     /// @inheritdoc IERC721Receiver

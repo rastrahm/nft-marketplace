@@ -127,7 +127,7 @@ Royalties solo si `supportsInterface(IERC2981)`; monto capeado a `price - protoc
 | Safe ERC-721 escrow | ✅ | `safeTransferFrom` + receiver en marketplace |
 | ETH `.call` checked | ✅ | `_pay` |
 | NatSpec públicas/externas | ✅ | |
-| Fuzz ≥ 1000 runs | ⏳ | Fase 7 |
+| Fuzz ≥ 1000 runs | ✅ | `test/fuzz/NFTMarketplace.fuzz.t.sol` |
 | Invariantes | — | Opcional / fuera de fases 0–8 mínimas |
 
 ---
@@ -136,7 +136,7 @@ Royalties solo si `supportsInterface(IERC2981)`; monto capeado a `price - protoc
 
 | SWC | Test(s) |
 |-----|---------|
-| SWC-101 | Royalty cap `test_buyItem_capsRoyaltyToRemainingAfterFee`; fuzz en Fase 7 |
+| SWC-101 | Royalty cap `test_buyItem_capsRoyaltyToRemainingAfterFee`; `test/fuzz/NFTMarketplace.fuzz.t.sol` |
 | SWC-103 | Compilador fijo (build) |
 | SWC-104 | `_pay` + `test_Attack_*` (call false → `TransferFailed`) |
 | SWC-107 | `test_Attack_SellerReenter*`, `test_Attack_BuyerReenter*`, `test_Attack_SellerReenterCancelOnERC721Received*` |

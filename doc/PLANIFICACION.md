@@ -141,7 +141,7 @@ Orden de cálculo (sobre `price`):
 | **0** ✅ | Scaffold Foundry + docs | `forge init` / `foundry.toml` con fuzz ≥ 1000 |
 | **1** ✅ | Tests falling: list / cancel / buy | Tests rojos definidos |
 | **2** ✅ | `listItem` + escrow | NFT en marketplace; evento `ItemListed` |
-| **3** | `cancelListing` + guard | Solo seller; NFT vuelve; reentrancy protected |
+| **3** ✅ | `cancelListing` + guard | Solo seller; NFT vuelve; reentrancy protected |
 | **4** | `buyItem` sin royalty | Fee + seller; CEI; NFT al buyer |
 | **5** | ERC-2981 path | Split fee / royalty / seller verificado en balances |
 | **6** | Seguridad | `MaliciousActor` no reentra con éxito |
@@ -176,6 +176,7 @@ Orden de cálculo (sobre `price`):
 - [x] Scaffold Foundry: `foundry.toml` (`solc = 0.8.24`, fuzz runs = 1000), remappings OZ + forge-std *(Fase 0)*
 - [x] Tests TDD list/cancel/buy definidos *(Fase 1)*
 - [x] `listItem` con escrow (`safeTransferFrom`) + `ItemListed` + `getListing` *(Fase 2)*
+- [x] `cancelListing` con CEI + `nonReentrant` (ReentrancyGuard custom) *(Fase 3)*
 - [ ] `pragma solidity 0.8.24;` en todos los contratos.
 - [ ] Escrow o approval validado antes de compra atómica.
 - [ ] CEI en `buyItem` y `cancelListing`.

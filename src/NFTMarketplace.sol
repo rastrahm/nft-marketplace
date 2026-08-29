@@ -5,13 +5,14 @@ import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 import {INFTMarketplace} from "./interfaces/INFTMarketplace.sol";
+import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
 
 /**
  * @title NFTMarketplace
- * @notice Marketplace NFT con escrow. Fase 2: `listItem` + `getListing` implementados.
- * @dev `cancelListing` / `buyItem` siguen en stub (`NotImplemented`) hasta fases 3–4.
+ * @notice Marketplace NFT con escrow. Fase 3: `cancelListing` + `ReentrancyGuard`.
+ * @dev `buyItem` sigue en stub (`NotImplemented`) hasta la fase 4.
  */
-contract NFTMarketplace is INFTMarketplace, IERC721Receiver {
+contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
     /// @notice Stub aún no implementado (fases posteriores).
     error NotImplemented();
 
@@ -56,9 +57,20 @@ contract NFTMarketplace is INFTMarketplace, IERC721Receiver {
         emit ItemListed(msg.sender, nftAddress, tokenId, price);
     }
 
-    /// @inheritdoc INFTMarketplace
-    function cancelListing(address, uint256) external pure {
-        revert NotImplemented();
+    /**
+     * @inheritdoc INFTMarketplace
+     * @dev CEI: `delete` listing antes de `safeTransferFrom`. Protegido con `nonReentrant`.
+     */
+    function cancelListing(address nftAddress, uint256 tokenId) external nonReentrant {
+        Listing memory listing = _listings[nftAddress][tokenId];
+        if (listing.seller == address(0)) revert ItemNotForSale();
+        if (listing.seller != msg.sender) revert NotItemOwner();
+
+        delete _listings[nftAddress][tokenId];
+
+        IERC721(nftAddress).safeTransferFrom(address(this), msg.sender, tokenId);
+
+        emit ItemCanceled(msg.sender, nftAddress, tokenId);
     }
 
     /// @inheritdoc INFTMarketplace

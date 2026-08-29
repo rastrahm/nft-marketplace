@@ -138,7 +138,7 @@ Orden de cálculo (sobre `price`):
 
 | Fase | Entregable | Criterio de done |
 |------|------------|------------------|
-| **0** | Scaffold Foundry + docs | `forge init` / `foundry.toml` con fuzz ≥ 1000 |
+| **0** ✅ | Scaffold Foundry + docs | `forge init` / `foundry.toml` con fuzz ≥ 1000 |
 | **1** | Tests falling: list / cancel / buy | Tests rojos definidos |
 | **2** | `listItem` + escrow | NFT en marketplace; evento `ItemListed` |
 | **3** | `cancelListing` + guard | Solo seller; NFT vuelve; reentrancy protected |
@@ -173,6 +173,7 @@ Orden de cálculo (sobre `price`):
 
 ## 10. Criterios de aceptación
 
+- [x] Scaffold Foundry: `foundry.toml` (`solc = 0.8.24`, fuzz runs = 1000), remappings OZ + forge-std *(Fase 0)*
 - [ ] `pragma solidity 0.8.24;` en todos los contratos.
 - [ ] Escrow o approval validado antes de compra atómica.
 - [ ] CEI en `buyItem` y `cancelListing`.

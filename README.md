@@ -2,7 +2,7 @@
 
 Marketplace NFT con **escrow**, ventas a precio fijo, royalties **ERC-2981**, fee de protocolo y patrones seguros (CEI + ReentrancyGuard). Solidity `0.8.24` + Foundry.
 
-**Estado:** Fases **0–5** ✅ (incluye royalties ERC-2981). Fases 6–8 pendientes.
+**Estado:** Fases **0–6** ✅ (incluye attack suite SWC-107 + `doc/SWC-AUDIT.md`). Fases 7–8 pendientes.
 
 ---
 
@@ -25,6 +25,7 @@ Marketplace NFT con **escrow**, ventas a precio fijo, royalties **ERC-2981**, fe
 | [doc/diagrama-flujo.md](./doc/diagrama-flujo.md) | Diagrama de flujo de procesos |
 | [doc/diagrama-clases.md](./doc/diagrama-clases.md) | Diagrama de clases |
 | [doc/flujograma.md](./doc/flujograma.md) | Flujograma operativo y payouts |
+| [doc/SWC-AUDIT.md](./doc/SWC-AUDIT.md) | Auditoría SWC + mapeo a tests de ataque |
 
 ---
 

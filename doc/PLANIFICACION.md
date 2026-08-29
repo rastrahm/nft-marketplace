@@ -144,7 +144,7 @@ Orden de cálculo (sobre `price`):
 | **3** ✅ | `cancelListing` + guard | Solo seller; NFT vuelve; reentrancy protected |
 | **4** ✅ | `buyItem` sin royalty | Fee + seller; CEI; NFT al buyer |
 | **5** ✅ | ERC-2981 path | Split fee / royalty / seller verificado en balances |
-| **6** | Seguridad | `MaliciousActor` no reentra con éxito |
+| **6** ✅ | Seguridad | `MaliciousActor` no reentra con éxito |
 | **7** | Fuzz | `bound(price)`, `bound(feeBps)` sin overflow / zero-price |
 | **8** | Gas / cleanup | `forge snapshot`; NatSpec completo |
 
@@ -179,6 +179,7 @@ Orden de cálculo (sobre `price`):
 - [x] `cancelListing` con CEI + `nonReentrant` (ReentrancyGuard custom) *(Fase 3)*
 - [x] `buyItem` sin royalty: fee + seller, CEI, `.call{value}`, refund exceso *(Fase 4)*
 - [x] ERC-2981 vía `supportsInterface` + split fee/royalty/seller (royalty capeada) *(Fase 5)*
+- [x] ReentrancyGuard + CEI evidenciado con attack suite SWC-107 *(Fase 6)*
 - [ ] `pragma solidity 0.8.24;` en todos los contratos.
 - [ ] Escrow o approval validado antes de compra atómica.
 - [ ] CEI en `buyItem` y `cancelListing`.
@@ -197,6 +198,7 @@ Orden de cálculo (sobre `price`):
 | [diagrama-flujo.md](./diagrama-flujo.md) | Flujo de procesos de negocio (list / buy / cancel / royalties) |
 | [diagrama-clases.md](./diagrama-clases.md) | Estructura de contratos, structs e interfaces |
 | [flujograma.md](./flujograma.md) | Flujograma detallado de decisión y payouts |
+| [SWC-AUDIT.md](./SWC-AUDIT.md) | Matriz SWC-100–136 + campañas de reentrancy |
 
 ---
 

@@ -12,7 +12,7 @@ import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
 /**
  * @title NFTMarketplace
  * @notice Marketplace NFT con escrow, fee de protocolo y royalties ERC-2981.
- * @dev Fase 5: detecta `IERC2981` vía `supportsInterface` y reparte fee / royalty / seller.
+ * @dev Fase 6: CEI + ReentrancyGuard. Pagos ETH solo vía `.call{value}("")`. Ver `doc/SWC-AUDIT.md`.
  */
 contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
     /// @notice Fee de protocolo en basis points (denominador 10_000).

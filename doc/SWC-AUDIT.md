@@ -6,8 +6,9 @@ Verificación de `NFTMarketplace` contra el [SWC Registry](https://swcregistry.i
 
 **Contrato auditado:** `src/NFTMarketplace.sol` (+ `src/interfaces/INFTMarketplace.sol`, `src/utils/ReentrancyGuard.sol`)  
 **Fecha:** 2026-08-29  
-**Referencia tests:** `test/NFTMarketplace.t.sol`, `test/unit/`, `test/attack/`  
-**Fase:** 6 (seguridad / reentrancy)
+**Referencia tests:** `test/NFTMarketplace.t.sol`, `test/unit/`, `test/attack/`, `test/fuzz/`  
+**Fase:** 8 (módulo cerrado)  
+**Gas:** [`GAS.md`](./GAS.md)
 
 ---
 

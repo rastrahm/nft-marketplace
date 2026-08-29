@@ -29,20 +29,15 @@ classDiagram
         +royaltyInfo(uint256, uint256) address, uint256
     }
 
-    class ReentrancyGuard {
-        <<abstract / custom>>
-        #_status uint256
-        #nonReentrant()
-        #_nonReentrantBefore()
-        #_nonReentrantAfter()
+    class Listing {
+        <<struct — 2 slots>>
+        +address seller
+        +uint256 price
     }
 
-    class Listing {
-        <<struct>>
-        +address seller
-        +address nftAddress
-        +uint256 tokenId
-        +uint256 price
+    class ReentrancyGuard {
+        <<abstract / EIP-1153 transient>>
+        #nonReentrant()
     }
 
     class NFTMarketplace {
@@ -147,7 +142,7 @@ classDiagram
 | Clase / artefacto | Responsabilidad |
 |-------------------|-----------------|
 | `NFTMarketplace` | Escrow, listings, compra atómica, split de pagos, guards |
-| `Listing` | Datos mínimos de una venta activa |
+| `Listing` | seller + price (2 slots); nft/tokenId en clave del mapping |
 | `ReentrancyGuard` | Bloqueo de reentrada en `buyItem` / `cancelListing` |
 | `IERC721` | Custodia y transferencia del NFT |
 | `IERC2981` | Cálculo de royalty por venta |

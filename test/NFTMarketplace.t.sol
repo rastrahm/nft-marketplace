@@ -10,7 +10,7 @@ import {MockERC721} from "./mocks/MockERC721.sol";
 /**
  * @title NFTMarketplacePhase1Test
  * @notice Suite TDD del marketplace: list / cancel / buy + e2e.
- * @dev Fases 0–7: list/cancel/buy/e2e/royalty/attack + fuzz. Fase 8: gas/NatSpec.
+ * @dev Módulo cerrado (Fases 0–8). Ver `doc/GAS.md` y `doc/SWC-AUDIT.md`.
  */
 contract NFTMarketplacePhase1Test is Test {
     uint256 internal constant FEE_BPS = 250; // 2.5%
@@ -54,8 +54,6 @@ contract NFTMarketplacePhase1Test is Test {
 
         INFTMarketplace.Listing memory listing = marketplace.getListing(address(nft), TOKEN_ID);
         assertEq(listing.seller, seller);
-        assertEq(listing.nftAddress, address(nft));
-        assertEq(listing.tokenId, TOKEN_ID);
         assertEq(listing.price, PRICE);
     }
 

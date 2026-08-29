@@ -83,9 +83,7 @@ Construir un marketplace NFT basado en **escrow** con Foundry y Solidity `0.8.24
 ```solidity
 struct Listing {
     address seller;
-    address nftAddress;
-    uint256 tokenId;
-    uint256 price; // wei
+    uint256 price; // wei — nft/tokenId están en la clave del mapping (Fase 8: 2 slots)
 }
 ```
 
@@ -146,7 +144,7 @@ Orden de cálculo (sobre `price`):
 | **5** ✅ | ERC-2981 path | Split fee / royalty / seller verificado en balances |
 | **6** ✅ | Seguridad | `MaliciousActor` no reentra con éxito |
 | **7** ✅ | Fuzz | `bound(price)`, `bound(feeBps)` sin overflow / zero-price |
-| **8** | Gas / cleanup | `forge snapshot`; NatSpec completo |
+| **8** ✅ | Gas / cleanup | `forge snapshot`; NatSpec completo; `doc/GAS.md` |
 
 ---
 
@@ -181,14 +179,15 @@ Orden de cálculo (sobre `price`):
 - [x] ERC-2981 vía `supportsInterface` + split fee/royalty/seller (royalty capeada) *(Fase 5)*
 - [x] ReentrancyGuard + CEI evidenciado con attack suite SWC-107 *(Fase 6)*
 - [x] Fuzz `price` / `feeBps` / royalty con `bound()` *(Fase 7)*
-- [ ] `pragma solidity 0.8.24;` en todos los contratos.
-- [ ] Escrow o approval validado antes de compra atómica.
-- [ ] CEI en `buyItem` y `cancelListing`.
-- [ ] ReentrancyGuard en esas dos funciones.
-- [ ] Detección ERC-2981 vía `supportsInterface`.
-- [ ] Pagos solo con `.call{value}("")`.
-- [ ] Custom errors (sin strings en `require`).
-- [ ] Tests e2e, reentrancy y fuzz pasando con `forge test`.
+- [x] Gas optimizado + `.gas-snapshot` + `doc/GAS.md` + NatSpec *(Fase 8)*
+- [x] `pragma solidity 0.8.24;` en todos los contratos.
+- [x] Escrow o approval validado antes de compra atómica.
+- [x] CEI en `buyItem` y `cancelListing`.
+- [x] ReentrancyGuard en esas dos funciones.
+- [x] Detección ERC-2981 vía `supportsInterface`.
+- [x] Pagos solo con `.call{value}("")`.
+- [x] Custom errors (sin strings en `require`).
+- [x] Tests e2e, reentrancy y fuzz pasando con `forge test`.
 
 ---
 
@@ -200,6 +199,7 @@ Orden de cálculo (sobre `price`):
 | [diagrama-clases.md](./diagrama-clases.md) | Estructura de contratos, structs e interfaces |
 | [flujograma.md](./flujograma.md) | Flujograma detallado de decisión y payouts |
 | [SWC-AUDIT.md](./SWC-AUDIT.md) | Matriz SWC-100–136 + campañas de reentrancy |
+| [GAS.md](./GAS.md) | Baseline / post-opt gas + tradeoffs |
 
 ---
 

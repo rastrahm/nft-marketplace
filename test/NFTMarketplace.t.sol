@@ -9,8 +9,8 @@ import {MockERC721} from "./mocks/MockERC721.sol";
 
 /**
  * @title NFTMarketplacePhase1Test
- * @notice Fase 1 (TDD): tests en rojo para `listItem`, `cancelListing` y `buyItem`.
- * @dev Esperan el comportamiento final; el stub actual revierte con `NotImplemented`.
+ * @notice Suite TDD del marketplace: list / cancel / buy + e2e.
+ * @dev Fase 2: tests de `listItem` en verde. Cancel/buy siguen fallando hasta fases 3–4.
  */
 contract NFTMarketplacePhase1Test is Test {
     uint256 internal constant FEE_BPS = 250; // 2.5%

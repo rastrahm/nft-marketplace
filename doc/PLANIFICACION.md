@@ -139,7 +139,7 @@ Orden de cálculo (sobre `price`):
 | Fase | Entregable | Criterio de done |
 |------|------------|------------------|
 | **0** ✅ | Scaffold Foundry + docs | `forge init` / `foundry.toml` con fuzz ≥ 1000 |
-| **1** | Tests falling: list / cancel / buy | Tests rojos definidos |
+| **1** ✅ | Tests falling: list / cancel / buy | Tests rojos definidos |
 | **2** | `listItem` + escrow | NFT en marketplace; evento `ItemListed` |
 | **3** | `cancelListing` + guard | Solo seller; NFT vuelve; reentrancy protected |
 | **4** | `buyItem` sin royalty | Fee + seller; CEI; NFT al buyer |

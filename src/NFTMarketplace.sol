@@ -3,14 +3,16 @@ pragma solidity 0.8.24;
 
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {IERC2981} from "@openzeppelin/contracts/interfaces/IERC2981.sol";
 
 import {INFTMarketplace} from "./interfaces/INFTMarketplace.sol";
 import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
 
 /**
  * @title NFTMarketplace
- * @notice Marketplace NFT con escrow. Fase 4: `buyItem` sin royalties (fee + seller).
- * @dev ERC-2981 se añade en la fase 5. Pagos ETH solo vía `.call{value}("")`.
+ * @notice Marketplace NFT con escrow, fee de protocolo y royalties ERC-2981.
+ * @dev Fase 5: detecta `IERC2981` vía `supportsInterface` y reparte fee / royalty / seller.
  */
 contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
     /// @notice Fee de protocolo en basis points (denominador 10_000).
@@ -72,7 +74,7 @@ contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
 
     /**
      * @inheritdoc INFTMarketplace
-     * @dev CEI + `nonReentrant`. Split: protocol fee + seller (sin royalty aún). Refund de exceso de ETH.
+     * @dev CEI + `nonReentrant`. Split: protocol fee + royalty (si ERC-2981) + seller. Refund de exceso.
      */
     function buyItem(address nftAddress, uint256 tokenId) external payable nonReentrant {
         Listing memory listing = _listings[nftAddress][tokenId];
@@ -84,13 +86,16 @@ contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
 
         delete _listings[nftAddress][tokenId];
 
-        uint256 protocolFee = (price * feeBps) / 10_000;
-        uint256 sellerProceeds = price - protocolFee;
+        (uint256 protocolFee, address royaltyReceiver, uint256 royaltyAmount, uint256 sellerProceeds) =
+            _calculatePayments(nftAddress, tokenId, price);
 
         IERC721(nftAddress).safeTransferFrom(address(this), msg.sender, tokenId);
 
         if (protocolFee > 0) {
             _pay(feeRecipient, protocolFee);
+        }
+        if (royaltyAmount > 0) {
+            _pay(royaltyReceiver, royaltyAmount);
         }
         _pay(seller, sellerProceeds);
 
@@ -110,6 +115,50 @@ contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
     /// @inheritdoc IERC721Receiver
     function onERC721Received(address, address, uint256, bytes calldata) external pure returns (bytes4) {
         return IERC721Receiver.onERC721Received.selector;
+    }
+
+    /**
+     * @notice Calcula fee de protocolo, royalty ERC-2981 (si aplica) y neto del seller.
+     * @dev Si no hay IERC2981 (o la query falla), royalty = 0 y el remanente va al seller.
+     *      La royalty se capea al remanente tras el fee para no underflow.
+     * @param nftAddress Colección ERC-721.
+     * @param tokenId Token vendido.
+     * @param price Precio de venta en wei.
+     * @return protocolFee Fee de protocolo.
+     * @return royaltyReceiver Beneficiario de royalty (o address(0)).
+     * @return royaltyAmount Monto de royalty (capeado).
+     * @return sellerProceeds Neto del seller.
+     */
+    function _calculatePayments(address nftAddress, uint256 tokenId, uint256 price)
+        private
+        view
+        returns (uint256 protocolFee, address royaltyReceiver, uint256 royaltyAmount, uint256 sellerProceeds)
+    {
+        protocolFee = (price * feeBps) / 10_000;
+        uint256 remaining = price - protocolFee;
+
+        if (_supportsERC2981(nftAddress)) {
+            (royaltyReceiver, royaltyAmount) = IERC2981(nftAddress).royaltyInfo(tokenId, price);
+            if (royaltyReceiver == address(0) || royaltyAmount == 0) {
+                royaltyReceiver = address(0);
+                royaltyAmount = 0;
+            } else if (royaltyAmount > remaining) {
+                royaltyAmount = remaining;
+            }
+        }
+
+        sellerProceeds = remaining - royaltyAmount;
+    }
+
+    /**
+     * @dev Consulta segura de `supportsInterface(IERC2981)`. Si el contrato no es ERC-165, retorna false.
+     */
+    function _supportsERC2981(address nftAddress) private view returns (bool) {
+        try IERC165(nftAddress).supportsInterface(type(IERC2981).interfaceId) returns (bool supported) {
+            return supported;
+        } catch {
+            return false;
+        }
     }
 
     /**

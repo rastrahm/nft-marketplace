@@ -1,0 +1,36 @@
+# .cursorrules — Module 05: Gas-Optimized NFT Marketplace
+
+## MODULE OVERVIEW
+Build an escrow-based NFT marketplace supporting fixed-price sales, ERC-2981 royalty enforcement, fee cut mechanisms, and secure state handling in Foundry with Solidity 0.8.24.
+
+---
+
+## 1. TECHNICAL CONSTRAINTS & STACK
+
+- **Compiler Version:** Strictly `pragma solidity 0.8.24;` (no floating pragmas).
+- **Tooling:** Foundry (`forge` for compilation, gas profiling, and fuzz testing).
+- **Standards & Integrations:**
+  - Interfaces: `IERC721`, `IERC2981`, `IERC165`.
+  - Secure escrow: Marketplace holds the NFT during listing via `safeTransferFrom`, or validates operator approvals before atomic purchase.
+  - Native ETH payouts: Use `.call{value: ...}("")` for sellers, royalty recipients, and fee vault.
+
+---
+
+## 2. CODING & SECURITY RULES
+
+- **Checks-Effects-Interactions (CEI):** Delete/nullify listing storage state BEFORE triggering token transfers or external ETH payments.
+- **Reentrancy Protection:** Enforce a custom transient or state-based `ReentrancyGuard` on `buyItem()` and `cancelListing()`.
+- **Royalty Handling (ERC-2981):** Query `supportsInterface(type(IERC2981).interfaceId)`. If supported, calculate royalty amount and distribute payments dynamically; otherwise, pay 100% net to seller.
+- **Custom Errors:** Use custom errors (`error ItemNotForSale()`, `error PriceNotMet()`, `error NotItemOwner()`, `error TransferFailed()`, `error ZeroPrice()`) instead of verbose `require` strings.
+
+---
+
+## 3. TESTING REQUIREMENTS
+
+- **Foundry Unit Tests:**
+  - End-to-end flow: List -> Cancel -> Re-list -> Buy.
+  - Verification of ERC-2981 royalty payout splitting vs. platform protocol fee.
+- **Security Tests:**
+  - Reentrancy exploit attempt via a malicious buyer/seller smart contract fallback.
+- **Fuzzing Tests:**
+  - Fuzz listing prices and fee basis points using `bound()` to prevent arithmetic overflows or zero-division edge cases.

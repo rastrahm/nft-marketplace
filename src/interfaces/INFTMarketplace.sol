@@ -7,11 +7,10 @@ pragma solidity 0.8.24;
  * @dev Los selectores de errores/eventos se usan en tests Foundry (`vm.expectRevert` / `vm.expectEmit`).
  */
 interface INFTMarketplace {
-    /// @notice Datos de un listing activo.
+    /// @notice Datos de un listing activo (empaquetado: 2 slots de storage).
+    /// @dev `nftAddress`/`tokenId` viven en la clave del mapping; no se duplican on-chain.
     struct Listing {
         address seller;
-        address nftAddress;
-        uint256 tokenId;
         uint256 price;
     }
 

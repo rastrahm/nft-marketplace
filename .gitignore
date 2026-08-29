@@ -6,6 +6,9 @@ broadcast/
 # Dependencias Foundry (forge install)
 /lib/
 
+# Snapshot de gas (regenerar con forge snapshot; versionar si se desea CI)
+# .gas-snapshot se versiona para baseline Fase 8
+
 # Variables de entorno y secretos
 .env
 .env.*

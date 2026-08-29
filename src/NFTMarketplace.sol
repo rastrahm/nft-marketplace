@@ -12,22 +12,26 @@ import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
 /**
  * @title NFTMarketplace
  * @notice Marketplace NFT con escrow, fee de protocolo y royalties ERC-2981.
- * @dev Fase 6: CEI + ReentrancyGuard. Pagos ETH solo vía `.call{value}("")`. Ver `doc/SWC-AUDIT.md`.
+ * @dev Fase 8: listing en 2 slots, `ReentrancyGuard` transient (EIP-1153), CEI + `.call{value}`.
+ *      Ver `doc/SWC-AUDIT.md` y `doc/GAS.md`.
  */
 contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
+    /// @notice Denominador de basis points (100% = 10_000).
+    uint256 private constant _BPS_DENOMINATOR = 10_000;
+
     /// @notice Fee de protocolo en basis points (denominador 10_000).
     uint256 public immutable feeBps;
 
     /// @notice Destinatario del fee de protocolo.
     address public immutable feeRecipient;
 
-    /// @notice Listings activos: colección => tokenId => Listing.
+    /// @notice Listings activos: colección => tokenId => Listing (seller + price).
     mapping(address nftAddress => mapping(uint256 tokenId => Listing)) private _listings;
 
     /**
      * @notice Configura fee de protocolo y vault.
-     * @param feeBps_ Fee en basis points.
-     * @param feeRecipient_ Receptor del fee.
+     * @param feeBps_ Fee en basis points (`<= 10_000` recomendado en deploy).
+     * @param feeRecipient_ Receptor del fee (`!= address(0)`).
      */
     constructor(uint256 feeBps_, address feeRecipient_) {
         feeBps = feeBps_;
@@ -36,7 +40,7 @@ contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
 
     /**
      * @inheritdoc INFTMarketplace
-     * @dev Checks: price > 0, caller = owner. Effects: guarda listing. Interactions: escrow vía `safeTransferFrom`.
+     * @dev Checks: price > 0, caller = owner. Effects: 2 SSTOREs. Interactions: escrow `safeTransferFrom`.
      */
     function listItem(address nftAddress, uint256 tokenId, uint256 price) external {
         if (price == 0) revert ZeroPrice();
@@ -44,12 +48,7 @@ contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
         IERC721 nft = IERC721(nftAddress);
         if (nft.ownerOf(tokenId) != msg.sender) revert NotItemOwner();
 
-        _listings[nftAddress][tokenId] = Listing({
-            seller: msg.sender,
-            nftAddress: nftAddress,
-            tokenId: tokenId,
-            price: price
-        });
+        _listings[nftAddress][tokenId] = Listing({seller: msg.sender, price: price});
 
         nft.safeTransferFrom(msg.sender, address(this), tokenId);
 
@@ -58,7 +57,7 @@ contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
 
     /**
      * @inheritdoc INFTMarketplace
-     * @dev CEI: `delete` listing antes de `safeTransferFrom`. Protegido con `nonReentrant`.
+     * @dev CEI: `delete` listing (refund gas) antes de `safeTransferFrom`. `nonReentrant` transient.
      */
     function cancelListing(address nftAddress, uint256 tokenId) external nonReentrant {
         Listing memory listing = _listings[nftAddress][tokenId];
@@ -74,7 +73,7 @@ contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
 
     /**
      * @inheritdoc INFTMarketplace
-     * @dev CEI + `nonReentrant`. Split: protocol fee + royalty (si ERC-2981) + seller. Refund de exceso.
+     * @dev CEI + `nonReentrant`. Split: fee + royalty (ERC-2981) + seller. Refund de exceso de ETH.
      */
     function buyItem(address nftAddress, uint256 tokenId) external payable nonReentrant {
         Listing memory listing = _listings[nftAddress][tokenId];
@@ -91,36 +90,43 @@ contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
 
         IERC721(nftAddress).safeTransferFrom(address(this), msg.sender, tokenId);
 
-        if (protocolFee > 0) {
+        if (protocolFee != 0) {
             _pay(feeRecipient, protocolFee);
         }
-        if (royaltyAmount > 0) {
+        if (royaltyAmount != 0) {
             _pay(royaltyReceiver, royaltyAmount);
         }
         _pay(seller, sellerProceeds);
 
-        uint256 excess = msg.value - price;
-        if (excess > 0) {
-            _pay(msg.sender, excess);
+        unchecked {
+            uint256 excess = msg.value - price;
+            if (excess != 0) {
+                _pay(msg.sender, excess);
+            }
         }
 
         emit ItemBought(msg.sender, nftAddress, tokenId, price);
     }
 
-    /// @inheritdoc INFTMarketplace
+    /**
+     * @inheritdoc INFTMarketplace
+     * @dev View: lee 2 slots de storage.
+     */
     function getListing(address nftAddress, uint256 tokenId) external view returns (Listing memory) {
         return _listings[nftAddress][tokenId];
     }
 
-    /// @inheritdoc IERC721Receiver
+    /**
+     * @inheritdoc IERC721Receiver
+     * @dev Permite recibir NFTs vía `safeTransferFrom` en el escrow.
+     */
     function onERC721Received(address, address, uint256, bytes calldata) external pure returns (bytes4) {
         return IERC721Receiver.onERC721Received.selector;
     }
 
     /**
      * @notice Calcula fee de protocolo, royalty ERC-2981 (si aplica) y neto del seller.
-     * @dev Si no hay IERC2981 (o la query falla), royalty = 0 y el remanente va al seller.
-     *      La royalty se capea al remanente tras el fee para no underflow.
+     * @dev Royalty capeada a `price - protocolFee`. `unchecked` solo tras el cap.
      * @param nftAddress Colección ERC-721.
      * @param tokenId Token vendido.
      * @param price Precio de venta en wei.
@@ -134,8 +140,8 @@ contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
         view
         returns (uint256 protocolFee, address royaltyReceiver, uint256 royaltyAmount, uint256 sellerProceeds)
     {
-        protocolFee = (price * feeBps) / 10_000;
-        uint256 remaining = price - protocolFee;
+        protocolFee = (price * feeBps) / _BPS_DENOMINATOR;
+        uint256 remaining = price - protocolFee; // checked: exige feeBps que no haga fee > price
 
         if (_supportsERC2981(nftAddress)) {
             (royaltyReceiver, royaltyAmount) = IERC2981(nftAddress).royaltyInfo(tokenId, price);
@@ -147,22 +153,26 @@ contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
             }
         }
 
-        sellerProceeds = remaining - royaltyAmount;
-    }
-
-    /**
-     * @dev Consulta segura de `supportsInterface(IERC2981)`. Si el contrato no es ERC-165, retorna false.
-     */
-    function _supportsERC2981(address nftAddress) private view returns (bool) {
-        try IERC165(nftAddress).supportsInterface(type(IERC2981).interfaceId) returns (bool supported) {
-            return supported;
-        } catch {
-            return false;
+        unchecked {
+            sellerProceeds = remaining - royaltyAmount; // royaltyAmount <= remaining
         }
     }
 
     /**
-     * @dev Envía ETH nativo con `.call`. Revierte `TransferFailed` si el receptor rechaza.
+     * @dev Consulta segura de `supportsInterface(IERC2981)`. Si el contrato no es ERC-165, retorna false.
+     * @param nftAddress Colección a inspeccionar.
+     * @return supported True si declara IERC2981.
+     */
+    function _supportsERC2981(address nftAddress) private view returns (bool supported) {
+        try IERC165(nftAddress).supportsInterface(type(IERC2981).interfaceId) returns (bool ok) {
+            supported = ok;
+        } catch {
+            supported = false;
+        }
+    }
+
+    /**
+     * @dev Envía ETH nativo con `.call` (forward all gas). Revierte `TransferFailed` si falla.
      * @param to Destinatario.
      * @param amount Wei a transferir.
      */

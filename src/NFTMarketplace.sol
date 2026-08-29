@@ -9,13 +9,10 @@ import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
 
 /**
  * @title NFTMarketplace
- * @notice Marketplace NFT con escrow. Fase 3: `cancelListing` + `ReentrancyGuard`.
- * @dev `buyItem` sigue en stub (`NotImplemented`) hasta la fase 4.
+ * @notice Marketplace NFT con escrow. Fase 4: `buyItem` sin royalties (fee + seller).
+ * @dev ERC-2981 se añade en la fase 5. Pagos ETH solo vía `.call{value}("")`.
  */
 contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
-    /// @notice Stub aún no implementado (fases posteriores).
-    error NotImplemented();
-
     /// @notice Fee de protocolo en basis points (denominador 10_000).
     uint256 public immutable feeBps;
 
@@ -73,9 +70,36 @@ contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
         emit ItemCanceled(msg.sender, nftAddress, tokenId);
     }
 
-    /// @inheritdoc INFTMarketplace
-    function buyItem(address, uint256) external payable {
-        revert NotImplemented();
+    /**
+     * @inheritdoc INFTMarketplace
+     * @dev CEI + `nonReentrant`. Split: protocol fee + seller (sin royalty aún). Refund de exceso de ETH.
+     */
+    function buyItem(address nftAddress, uint256 tokenId) external payable nonReentrant {
+        Listing memory listing = _listings[nftAddress][tokenId];
+        if (listing.seller == address(0)) revert ItemNotForSale();
+        if (msg.value < listing.price) revert PriceNotMet();
+
+        address seller = listing.seller;
+        uint256 price = listing.price;
+
+        delete _listings[nftAddress][tokenId];
+
+        uint256 protocolFee = (price * feeBps) / 10_000;
+        uint256 sellerProceeds = price - protocolFee;
+
+        IERC721(nftAddress).safeTransferFrom(address(this), msg.sender, tokenId);
+
+        if (protocolFee > 0) {
+            _pay(feeRecipient, protocolFee);
+        }
+        _pay(seller, sellerProceeds);
+
+        uint256 excess = msg.value - price;
+        if (excess > 0) {
+            _pay(msg.sender, excess);
+        }
+
+        emit ItemBought(msg.sender, nftAddress, tokenId, price);
     }
 
     /// @inheritdoc INFTMarketplace
@@ -86,5 +110,15 @@ contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
     /// @inheritdoc IERC721Receiver
     function onERC721Received(address, address, uint256, bytes calldata) external pure returns (bytes4) {
         return IERC721Receiver.onERC721Received.selector;
+    }
+
+    /**
+     * @dev Envía ETH nativo con `.call`. Revierte `TransferFailed` si el receptor rechaza.
+     * @param to Destinatario.
+     * @param amount Wei a transferir.
+     */
+    function _pay(address to, uint256 amount) private {
+        (bool success,) = to.call{value: amount}("");
+        if (!success) revert TransferFailed();
     }
 }

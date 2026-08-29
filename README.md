@@ -2,7 +2,7 @@
 
 Marketplace NFT con **escrow**, ventas a precio fijo, royalties **ERC-2981**, fee de protocolo y patrones seguros (CEI + ReentrancyGuard). Solidity `0.8.24` + Foundry.
 
-**Estado:** Fases **0–4** ✅ (`listItem`, `cancelListing`, `buyItem` sin royalty). Fases 5–8 pendientes.
+**Estado:** Fases **0–5** ✅ (incluye royalties ERC-2981). Fases 6–8 pendientes.
 
 ---
 

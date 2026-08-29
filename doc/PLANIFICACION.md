@@ -143,7 +143,7 @@ Orden de cálculo (sobre `price`):
 | **2** ✅ | `listItem` + escrow | NFT en marketplace; evento `ItemListed` |
 | **3** ✅ | `cancelListing` + guard | Solo seller; NFT vuelve; reentrancy protected |
 | **4** ✅ | `buyItem` sin royalty | Fee + seller; CEI; NFT al buyer |
-| **5** | ERC-2981 path | Split fee / royalty / seller verificado en balances |
+| **5** ✅ | ERC-2981 path | Split fee / royalty / seller verificado en balances |
 | **6** | Seguridad | `MaliciousActor` no reentra con éxito |
 | **7** | Fuzz | `bound(price)`, `bound(feeBps)` sin overflow / zero-price |
 | **8** | Gas / cleanup | `forge snapshot`; NatSpec completo |
@@ -178,6 +178,7 @@ Orden de cálculo (sobre `price`):
 - [x] `listItem` con escrow (`safeTransferFrom`) + `ItemListed` + `getListing` *(Fase 2)*
 - [x] `cancelListing` con CEI + `nonReentrant` (ReentrancyGuard custom) *(Fase 3)*
 - [x] `buyItem` sin royalty: fee + seller, CEI, `.call{value}`, refund exceso *(Fase 4)*
+- [x] ERC-2981 vía `supportsInterface` + split fee/royalty/seller (royalty capeada) *(Fase 5)*
 - [ ] `pragma solidity 0.8.24;` en todos los contratos.
 - [ ] Escrow o approval validado antes de compra atómica.
 - [ ] CEI en `buyItem` y `cancelListing`.

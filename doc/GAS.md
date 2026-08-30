@@ -72,6 +72,7 @@ forge snapshot --match-contract 'NFTMarketplacePhase1Test|NFTMarketplaceRoyaltyT
 | `test/fuzz/NFTMarketplace.fuzz.t.sol` | 1000 runs price/fee/royalty |
 | `test/unit/NFTMarketplace.royalty.t.sol` | Split + cap ERC-2981 |
 
-Suite completa Fase 8: **25 tests** verdes (unit + royalty + attack + fuzz).
+Suite completa: **25 tests** Foundry verdes (unit + royalty + attack + fuzz) + Vitest frontend.  
+Demo UI: [`DEPLOY.md`](./DEPLOY.md).
 
-Ver [`SWC-AUDIT.md`](./SWC-AUDIT.md).
+Ver [`SWC-AUDIT.md`](./SWC-AUDIT.md) · índice [`README.md`](./README.md).

@@ -1,6 +1,6 @@
 # Diagrama de clases — NFT Marketplace
 
-Modelo estructural de contratos, interfaces, structs y actores de test.
+Modelo estructural **as-built** (módulo cerrado): contratos, mocks, tests y demo.
 
 ## 1. Diagrama principal (UML / Mermaid)
 
@@ -16,12 +16,8 @@ classDiagram
     class IERC721 {
         <<interface>>
         +ownerOf(uint256) address
-        +getApproved(uint256) address
-        +isApprovedForAll(address, address) bool
-        +safeTransferFrom(address, address, uint256)
-        +transferFrom(address, address, uint256)
         +approve(address, uint256)
-        +setApprovalForAll(address, bool)
+        +safeTransferFrom(address, address, uint256)
     }
 
     class IERC2981 {
@@ -40,140 +36,130 @@ classDiagram
         #nonReentrant()
     }
 
-    class NFTMarketplace {
-        +uint256 feeBps
-        +address feeRecipient
-        +mapping listings
-        +constructor(uint256, address)
+    class INFTMarketplace {
+        <<interface>>
         +listItem(address, uint256, uint256)
         +cancelListing(address, uint256)
         +buyItem(address, uint256) payable
-        +updateListing(address, uint256, uint256)
         +getListing(address, uint256) Listing
-        -_calculatePayments(address, uint256, uint256) payments
-        -_pay(address, uint256)
     }
 
-    class IMarketplaceErrors {
-        <<errors>>
-        +ItemNotForSale()
-        +PriceNotMet()
-        +NotItemOwner()
-        +TransferFailed()
-        +ZeroPrice()
+    class NFTMarketplace {
+        +uint256 feeBps
+        +address feeRecipient
+        +listItem()
+        +cancelListing()
+        +buyItem() payable
+        +getListing() Listing
+        +onERC721Received()
+        -_calculatePayments()
+        -_supportsERC2981()
+        -_pay()
     }
 
-    class MarketplaceEvents {
-        <<events>>
-        +ItemListed(address, address, uint256, uint256)
-        +ItemCanceled(address, address, uint256)
-        +ItemBought(address, address, uint256, uint256)
-        +ItemUpdated(address, address, uint256, uint256)
+    class DemoERC721 {
+        <<src/mocks — deploy/UI>>
+        +mint(address, uint256)
     }
 
-    IERC165 <|-- IERC721 : extends
-    IERC165 <|-- IERC2981 : extends
-    ReentrancyGuard <|-- NFTMarketplace : inherits
+    IERC165 <|-- IERC721
+    IERC165 <|-- IERC2981
+    INFTMarketplace <|.. NFTMarketplace
+    ReentrancyGuard <|-- NFTMarketplace
+    IERC721Receiver <|.. NFTMarketplace
     NFTMarketplace ..> Listing : uses
-    NFTMarketplace ..> IERC721 : calls
-    NFTMarketplace ..> IERC2981 : queries
-    NFTMarketplace ..> IERC165 : queries
-    NFTMarketplace ..> IMarketplaceErrors : reverts
-    NFTMarketplace ..> MarketplaceEvents : emits
+    NFTMarketplace ..> IERC721 : escrow
+    NFTMarketplace ..> IERC2981 : royalty
+    NFTMarketplace ..> IERC165 : detect
+    DemoERC721 ..|> IERC721
 ```
 
-## 2. Contratos de prueba (mocks)
+## 2. Tests y actores maliciosos
 
 ```mermaid
 classDiagram
     direction LR
 
-    class NFTMarketplace {
+    class NFTMarketplace
+    class MockERC721
+    class MockERC721Royalty
+    class MaliciousActor {
+        +configure()
         +listItem()
         +buyItem()
         +cancelListing()
-    }
-
-    class MockERC721 {
-        +mint(address, uint256)
-        +safeTransferFrom()
-    }
-
-    class MockERC721Royalty {
-        +mint(address, uint256)
-        +setDefaultRoyalty(address, uint96)
-        +royaltyInfo(uint256, uint256)
-        +supportsInterface(bytes4) bool
-    }
-
-    class MaliciousActor {
-        +marketplace address
-        +attackOnReceive bool
-        +buyAndReenter()
         +receive()
         +onERC721Received()
     }
+    class NFTMarketplacePhase1Test
+    class NFTMarketplaceRoyaltyTest
+    class ReentrancyAttackTest
+    class NFTMarketplaceFuzzTest
 
-    class NFTMarketplaceTest {
-        <<Foundry Test>>
-        +setUp()
-        +test_ListCancelRelistBuy()
-        +test_RoyaltyAndFeeSplit()
-        +test_ReentrancyBlocked()
-        +testFuzz_PriceAndFee(uint256, uint256)
-    }
-
-    IERC721 <|.. MockERC721 : implements
-    IERC721 <|.. MockERC721Royalty : implements
-    IERC2981 <|.. MockERC721Royalty : implements
-    IERC165 <|.. MockERC721Royalty : implements
-
-    NFTMarketplaceTest --> NFTMarketplace : deploys / calls
-    NFTMarketplaceTest --> MockERC721 : deploys
-    NFTMarketplaceTest --> MockERC721Royalty : deploys
-    NFTMarketplaceTest --> MaliciousActor : deploys
+    MockERC721 ..|> IERC721
+    MockERC721Royalty ..|> IERC721
+    MockERC721Royalty ..|> IERC2981
+    NFTMarketplacePhase1Test --> NFTMarketplace
+    NFTMarketplacePhase1Test --> MockERC721
+    NFTMarketplaceRoyaltyTest --> MockERC721Royalty
+    ReentrancyAttackTest --> MaliciousActor
     MaliciousActor --> NFTMarketplace : reentra
-    NFTMarketplace --> MockERC721 : escrow / transfer
-    NFTMarketplace --> MockERC721Royalty : escrow / royaltyInfo
+    NFTMarketplaceFuzzTest --> NFTMarketplace
 ```
 
-## 3. Responsabilidades por clase
+## 3. Frontend (demo)
 
-| Clase / artefacto | Responsabilidad |
-|-------------------|-----------------|
-| `NFTMarketplace` | Escrow, listings, compra atómica, split de pagos, guards |
-| `Listing` | seller + price (2 slots); nft/tokenId en clave del mapping |
-| `ReentrancyGuard` | Bloqueo de reentrada en `buyItem` / `cancelListing` |
-| `IERC721` | Custodia y transferencia del NFT |
-| `IERC2981` | Cálculo de royalty por venta |
-| `IERC165` | Detección de soporte ERC-2981 |
-| `MockERC721` | NFT de test sin royalties |
-| `MockERC721Royalty` | NFT de test con royalties |
-| `MaliciousActor` | Intento de reentrancy en receive/fallback |
-| `NFTMarketplaceTest` | Cobertura unitaria, seguridad y fuzz |
+```mermaid
+classDiagram
+    direction TB
+    class MarketplaceApp
+    class AppToolbar
+    class ThemeToggle
+    class useMarketplace
+    class useWallet
+    class useTheme
+    class PublicEnv
 
-## 4. Relaciones de dependencia (resumen)
+    MarketplaceApp --> AppToolbar
+    MarketplaceApp --> useWallet
+    MarketplaceApp --> useMarketplace
+    AppToolbar --> ThemeToggle
+    ThemeToggle --> useTheme
+    useMarketplace ..> PublicEnv : Zod
+    useWallet ..> PublicEnv
+```
+
+## 4. Responsabilidades
+
+| Artefacto | Rol |
+|-----------|-----|
+| `NFTMarketplace` | Escrow, list/cancel/buy, split fee/royalty/seller |
+| `Listing` | `{seller, price}` — 2 slots; claves = nft + tokenId |
+| `ReentrancyGuard` | Lock transient en buy/cancel |
+| `DemoERC721` | NFT de demo para Anvil / UI |
+| `MockERC721` / `MockERC721Royalty` | Tests Foundry |
+| `MaliciousActor` | Vectores SWC-107 |
+| `MarketplaceApp` | UI: mintear, listar, cancelar, comprar |
+| `ThemeToggle` / `useTheme` | Claro / oscuro (`market-theme`) |
+
+## 5. Dependencias (resumen)
 
 ```
 NFTMarketplace
-  ├── hereda     → ReentrancyGuard
-  ├── almacena   → Listing (mapping)
-  ├── integra    → IERC721 (transferencias)
-  ├── consulta   → IERC165 + IERC2981 (royalties)
-  ├── emite      → ItemListed / ItemCanceled / ItemBought / ItemUpdated
-  └── revierte   → custom errors
+  ├── hereda     → ReentrancyGuard (transient)
+  ├── implementa → INFTMarketplace, IERC721Receiver
+  ├── almacena   → Listing (2 slots)
+  ├── integra    → IERC721
+  ├── consulta   → IERC165 + IERC2981
+  ├── emite      → ItemListed / ItemCanceled / ItemBought
+  └── revierte   → custom errors (INFTMarketplace)
 ```
 
-## 5. Layout Solidity del contrato principal
+## 6. Layout Solidity
 
-Orden de layout según convención del monorepo:
-
-1. Interfaces / imports  
-2. Libraries (si aplica)  
-3. Contract `NFTMarketplace`  
-4. Type declarations (`Listing`)  
-5. State variables (`feeBps`, `feeRecipient`, `listings`)  
-6. Events  
-7. Errors  
-8. Modifiers (`nonReentrant` vía herencia)  
-9. Functions: constructor → external → public → internal → private  
+1. Imports / interfaces  
+2. Contract `NFTMarketplace`  
+3. State (`feeBps`, `feeRecipient`, `_listings`) — `Listing` en la interfaz  
+4. Constructor → external (`listItem`, `cancelListing`, `buyItem`, `getListing`)  
+5. `onERC721Received`  
+6. Private: `_calculatePayments`, `_supportsERC2981`, `_pay`

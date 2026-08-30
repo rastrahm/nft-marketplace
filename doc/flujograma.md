@@ -1,6 +1,6 @@
 # Flujograma del proyecto — NFT Marketplace
 
-Flujograma operativo end-to-end: desde el setup hasta la liquidación de una venta, incluyendo ramas de error y seguridad.
+Flujograma operativo **as-built** (v1): setup → list → cancel/buy → payouts → seguridad → UI.
 
 ## 1. Flujograma maestro del sistema
 
@@ -24,7 +24,6 @@ flowchart TB
     subgraph BRANCH["FASE 2 — Decisión post-listado"]
         B1{¿Qué ocurre?}
         B1 -->|Cancelar| C1
-        B1 -->|Actualizar precio| U1
         B1 -->|Comprar| P1
     end
 
@@ -35,13 +34,6 @@ flowchart TB
         C3 --> C4[NFT → Seller]
         C4 --> C5[Emit ItemCanceled]
         C5 --> C6[Salir nonReentrant]
-    end
-
-    subgraph UPDATE["FASE 2b — Update precio"]
-        U1{caller = seller y price > 0?}
-        U1 -->|No| Ux[Revert]
-        U1 -->|Sí| U2[Actualizar price]
-        U2 --> U3[Emit ItemUpdated]
     end
 
     subgraph BUY["FASE 3 — Compra y liquidación"]
@@ -64,10 +56,8 @@ flowchart TB
     SETUP --> LIST
     LIST --> BRANCH
     BRANCH --> CANCEL
-    BRANCH --> UPDATE
     BRANCH --> BUY
     CANCEL --> END1([Marketplace idle])
-    UPDATE --> BRANCH
     BUY --> END2([Venta cerrada])
 ```
 
@@ -123,21 +113,20 @@ flowchart TD
     J --> L([Transacción OK])
 ```
 
-## 4. Flujograma del pipeline de desarrollo (TDD)
+## 4. Flujograma del pipeline de desarrollo (TDD) — cumplido
 
 ```mermaid
 flowchart LR
-    A[Leer .cursorrules] --> B[Escribir tests .t.sol]
-    B --> C[forge test — FAIL]
-    C --> D[Implementar NFTMarketplace]
-    D --> E[forge test — PASS unit]
-    E --> F[Añadir MaliciousActor]
-    F --> G[Tests de reentrancy PASS]
-    G --> H[Fuzz price + feeBps]
-    H --> I[forge test --fuzz-runs 1000]
-    I --> J{Gas / NatSpec OK?}
-    J -->|No| D
-    J -->|Sí| K([Módulo listo])
+    A[.cursorrules] --> B[Tests .t.sol rojos]
+    B --> C[listItem]
+    C --> D[cancelListing + guard]
+    D --> E[buyItem + fee]
+    E --> F[ERC-2981]
+    F --> G[Attack SWC-107]
+    G --> H[Fuzz 1000]
+    H --> I[Gas + NatSpec]
+    I --> J[Demo Next.js + tema]
+    J --> K([Módulo cerrado])
 ```
 
 ## 5. Matriz flujo ↔ función ↔ invariante
@@ -150,13 +139,29 @@ flowchart LR
 | Pre-compra | `buyItem` | `msg.value >= price` |
 | Post-effects | `buyItem` | listing borrado **antes** de calls |
 | Post-compra | `buyItem` | `ownerOf == buyer`; suma payouts = price |
-| Reentrada | guard | segunda llamada revierte |
+| Reentrada | guard transient | segunda llamada revierte |
 | Sin ERC-2981 | payout | seller recibe `price - fee` |
 | Con ERC-2981 | payout | fee + royalty + seller = price |
 
-## 6. Cómo leer estos diagramas
+## 6. Flujo UI (demo)
 
-1. **Setup → Listado**: prepara el estado on-chain.  
-2. **Branch**: el listing solo puede cancelarse, actualizarse o comprarse.  
-3. **Compra**: el corazón del protocolo; CEI + splits + eventos.  
-4. **Seguridad / TDD**: aseguran que el flujograma de negocio no se rompa bajo ataque ni inputs extremos.
+```mermaid
+flowchart TD
+    U1[Abrir localhost:3000] --> U2[Conectar wallet Anvil]
+    U2 --> U3{Acción}
+    U3 -->|Mintear demo| U4[DemoERC721.mint]
+    U3 -->|Listar| U5[approve + listItem]
+    U3 -->|Cancelar| U6[cancelListing]
+    U3 -->|Comprar| U7[buyItem + ETH]
+    U3 -->|Tema| U8[Claro/Oscuro localStorage]
+    U5 --> U9[Ver listing]
+    U6 --> U9
+    U7 --> U9
+```
+
+## 7. Cómo leer estos diagramas
+
+1. **Setup → Listado**: estado on-chain.  
+2. **Branch**: cancelar o comprar (no hay `updateListing` en v1).  
+3. **Compra**: CEI + splits + eventos.  
+4. **Seguridad / fuzz / UI**: cierre del módulo (fases 0–8 + demo).

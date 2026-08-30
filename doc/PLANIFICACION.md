@@ -1,13 +1,16 @@
 # Planificación — Module 05: Gas-Optimized NFT Marketplace
 
+**Estado:** ✅ Cerrado (fases **0–8** + demo Next.js con tema claro/oscuro).
+
 ## 1. Objetivo del proyecto
 
-Construir un marketplace NFT basado en **escrow** con Foundry y Solidity `0.8.24`, que soporte:
+Marketplace NFT basado en **escrow** con Foundry y Solidity `0.8.24`:
 
 - Ventas a **precio fijo** (ETH nativo).
-- Aplicación de **royalties ERC-2981** cuando el NFT las soporte.
+- **Royalties ERC-2981** cuando el NFT las soporte.
 - **Fee de protocolo** hacia un fee vault.
-- Manejo seguro de estado: **CEI**, **ReentrancyGuard** y **custom errors**.
+- Seguridad: **CEI**, **ReentrancyGuard transient** (EIP-1153) y **custom errors**.
+- Demo UI Next.js (list / cancel / buy + tema claro/oscuro).
 
 ---
 
@@ -17,20 +20,22 @@ Construir un marketplace NFT basado en **escrow** con Foundry y Solidity `0.8.24
 
 | Área | Descripción |
 |------|-------------|
-| Listado | El seller deposita el NFT en el marketplace (`safeTransferFrom`) o aprueba al operador |
-| Compra | Pago atómico: fee + royalty + seller; transferencia del NFT al buyer |
-| Cancelación | Solo el owner del listing puede recuperar el NFT |
-| Royalties | Query `IERC165` → `IERC2981.royaltyInfo`; si no aplica, 100 % neto al seller |
-| Fees | Fee en basis points hacia `feeRecipient` |
-| Seguridad | CEI, ReentrancyGuard en `buyItem` / `cancelListing`, `.call{value}` |
-| Tests | Unitarios e2e, reentrancy malicioso, fuzz de precios y fee BPS |
+| Listado | Escrow vía `safeTransferFrom` tras `approve` |
+| Compra | Pago atómico: fee + royalty + seller; NFT al buyer |
+| Cancelación | Solo el seller del listing recupera el NFT |
+| Royalties | `supportsInterface(IERC2981)` → `royaltyInfo`; si no, neto al seller (menos fee) |
+| Fees | `feeBps` / `feeRecipient` (immutables) |
+| Seguridad | CEI + guard transient en `buyItem` / `cancelListing`; `.call{value}` |
+| Tests | Unit/e2e, royalty, attack SWC-107, fuzz (`bound`) — **25 tests** |
+| Gas | Listing 2 slots + guard transient — ver [GAS.md](./GAS.md) |
+| Frontend | Next.js 15 demo — ver [DEPLOY.md](./DEPLOY.md) |
 
-### No incluye (fuera de alcance de este módulo)
+### No incluye
 
 - Ofertas / bidding (auctions).
 - Pagos en ERC-20.
 - Batch listings.
-- Frontend / indexación off-chain.
+- Indexación off-chain / subgraph.
 
 ---
 
@@ -39,29 +44,33 @@ Construir un marketplace NFT basado en **escrow** con Foundry y Solidity `0.8.24
 | Componente | Elección |
 |------------|----------|
 | Compilador | `pragma solidity 0.8.24;` (exacto) |
-| Framework | Foundry (`forge`, `forge test`, gas reports) |
+| EVM | Cancun (`foundry.toml`) — transient storage |
+| Framework | Foundry (`forge` / fuzz ≥ 1000) |
 | Estándares | `IERC721`, `IERC2981`, `IERC165` |
-| Librerías | OpenZeppelin Contracts v5.x (interfaces / mocks de test) |
+| Librerías | OpenZeppelin Contracts v5.2, forge-std |
 | ETH | `.call{value: amount}("")` — nunca `transfer`/`send` |
+| UI | Next.js 15, ethers v6, Zod, Vitest · Node ≥ 20 |
 
 ---
 
-## 4. Arquitectura propuesta
+## 4. Arquitectura
 
 ```
 05-nft-marketplace/
-├── doc/                          # Planificación y diagramas
+├── doc/                              # Esta documentación
 ├── src/
-│   ├── NFTMarketplace.sol        # Contrato principal (escrow + ventas)
-│   └── interfaces/               # (opcional) wrappers locales
+│   ├── NFTMarketplace.sol            # Escrow + list/cancel/buy
+│   ├── interfaces/INFTMarketplace.sol
+│   ├── utils/ReentrancyGuard.sol     # EIP-1153 transient
+│   └── mocks/DemoERC721.sol          # NFT demo (deploy / UI)
 ├── test/
-│   ├── NFTMarketplace.t.sol      # Unit + e2e + royalties + fees
-│   ├── NFTMarketplace.fuzz.t.sol # Fuzz precios / fee BPS
-│   └── mocks/
-│       ├── MockERC721Royalty.sol # NFT con ERC-2981
-│       ├── MockERC721.sol        # NFT sin royalties
-│       └── MaliciousActor.sol    # Reentrancy vía fallback/receive
-├── script/                       # Deploy (opcional)
+│   ├── NFTMarketplace.t.sol          # Unit + e2e
+│   ├── unit/NFTMarketplace.royalty.t.sol
+│   ├── attack/                       # MaliciousActor + ReentrancyAttack
+│   ├── fuzz/NFTMarketplace.fuzz.t.sol
+│   └── mocks/                        # MockERC721, MockERC721Royalty
+├── script/Deploy.s.sol               # Anvil: DemoERC721 + marketplace
+├── frontend/                         # Next.js App Router + tema
 ├── foundry.toml
 └── remappings.txt
 ```
@@ -71,9 +80,9 @@ Construir un marketplace NFT basado en **escrow** con Foundry y Solidity `0.8.24
 | Actor | Responsabilidad |
 |-------|-----------------|
 | **Seller** | Lista / cancela; recibe pago neto |
-| **Buyer** | Envía `msg.value >= price`; recibe el NFT |
-| **Royalty receiver** | Recibe royalty si el collection soporta ERC-2981 |
-| **Fee recipient** | Recibe el fee de protocolo |
+| **Buyer** | `msg.value >= price`; recibe el NFT |
+| **Royalty receiver** | Royalty si la colección soporta ERC-2981 |
+| **Fee recipient** | Fee de protocolo |
 | **Marketplace** | Custodia NFT, valida estado, reparte ETH, emite eventos |
 
 ---
@@ -83,17 +92,17 @@ Construir un marketplace NFT basado en **escrow** con Foundry y Solidity `0.8.24
 ```solidity
 struct Listing {
     address seller;
-    uint256 price; // wei — nft/tokenId están en la clave del mapping (Fase 8: 2 slots)
+    uint256 price; // wei — nft/tokenId viven en la clave del mapping (2 slots)
 }
 ```
 
-- Clave de mapping: `listings[nftAddress][tokenId] → Listing`.
-- Listing activo: `seller != address(0)` (o `price > 0` según diseño).
-- Al comprar/cancelar: **borrar storage antes** de transferencias externas (CEI).
+- Mapping: `_listings[nftAddress][tokenId] → Listing`.
+- Activo: `seller != address(0)`.
+- CEI: `delete` listing **antes** de transfers / `.call`.
 
 ---
 
-## 6. Funciones públicas previstas
+## 6. API on-chain
 
 | Función | Visibilidad | Descripción |
 |---------|-------------|-------------|
@@ -101,105 +110,87 @@ struct Listing {
 | `listItem(nft, tokenId, price)` | external | Escrow NFT + crea listing |
 | `cancelListing(nft, tokenId)` | external nonReentrant | Devuelve NFT al seller |
 | `buyItem(nft, tokenId)` | external payable nonReentrant | Compra + split de pagos |
-| `updateListing(nft, tokenId, newPrice)` | external | (opcional) actualiza precio |
-| `getListing(nft, tokenId)` | view | Lectura del listing |
+| `getListing(nft, tokenId)` | view | Lee `{seller, price}` |
+
+> `updateListing` **no** se implementó (quedó opcional fuera del cierre).
 
 ### Errores custom
 
-- `ItemNotForSale()`
-- `PriceNotMet()`
-- `NotItemOwner()`
-- `TransferFailed()`
-- `ZeroPrice()`
+`ItemNotForSale` · `PriceNotMet` · `NotItemOwner` · `TransferFailed` · `ZeroPrice`
+
+### Eventos
+
+`ItemListed` · `ItemCanceled` · `ItemBought`
 
 ---
 
 ## 7. Lógica de payout (compra)
 
-Orden de cálculo (sobre `price`):
-
 1. `protocolFee = price * feeBps / 10_000`
-2. Si `supportsInterface(IERC2981)` → `(receiver, royaltyAmount) = royaltyInfo(tokenId, price)`
-3. Cap de seguridad: royalty no debe superar el remanente tras el fee (o política documentada).
+2. Si `supportsInterface(IERC2981)` → `royaltyInfo(tokenId, price)`
+3. Cap: `royaltyAmount ≤ price - protocolFee`
 4. `sellerProceeds = price - protocolFee - royaltyAmount`
-5. Efectos: `delete listings[...]`
-6. Interacciones:
-   - Transferir NFT al buyer
-   - `.call` fee → `feeRecipient`
-   - `.call` royalty → `receiver` (si > 0)
-   - `.call` neto → `seller`
-7. Refund de exceso de `msg.value` si aplica (opcional documentado)
+5. Effects: `delete _listings[...]`
+6. Interactions: NFT → buyer · fee · royalty · seller · refund exceso
 
 ---
 
 ## 8. Fases de implementación (TDD)
 
-| Fase | Entregable | Criterio de done |
-|------|------------|------------------|
-| **0** ✅ | Scaffold Foundry + docs | `forge init` / `foundry.toml` con fuzz ≥ 1000 |
-| **1** ✅ | Tests falling: list / cancel / buy | Tests rojos definidos |
-| **2** ✅ | `listItem` + escrow | NFT en marketplace; evento `ItemListed` |
-| **3** ✅ | `cancelListing` + guard | Solo seller; NFT vuelve; reentrancy protected |
-| **4** ✅ | `buyItem` sin royalty | Fee + seller; CEI; NFT al buyer |
-| **5** ✅ | ERC-2981 path | Split fee / royalty / seller verificado en balances |
-| **6** ✅ | Seguridad | `MaliciousActor` no reentra con éxito |
-| **7** ✅ | Fuzz | `bound(price)`, `bound(feeBps)` sin overflow / zero-price |
-| **8** ✅ | Gas / cleanup | `forge snapshot`; NatSpec completo; `doc/GAS.md` |
+| Fase | Entregable | Estado |
+|------|------------|--------|
+| **0** | Scaffold Foundry + docs | ✅ |
+| **1** | Tests falling: list / cancel / buy | ✅ |
+| **2** | `listItem` + escrow | ✅ |
+| **3** | `cancelListing` + ReentrancyGuard | ✅ |
+| **4** | `buyItem` sin royalty | ✅ |
+| **5** | ERC-2981 path | ✅ |
+| **6** | Attack suite SWC-107 + `SWC-AUDIT.md` | ✅ |
+| **7** | Fuzz `price` / `feeBps` / royalty | ✅ |
+| **8** | Gas + NatSpec + `GAS.md` | ✅ |
+| **UI** | Demo Next.js + tema claro/oscuro | ✅ |
 
 ---
 
-## 9. Plan de pruebas
+## 9. Plan de pruebas (cumplido)
 
-### Unitarios / e2e
-
-1. List → Cancel → Re-list → Buy.
-2. Compra con NFT ERC-2981: balances de fee, royalty y seller.
-3. Compra sin ERC-2981: 100 % neto (menos fee) al seller.
-4. Reverts: `ZeroPrice`, `ItemNotForSale`, `PriceNotMet`, `NotItemOwner`.
-
-### Seguridad
-
-- Buyer/seller malicioso con `receive`/`fallback` que reentra `buyItem` o `cancelListing` → debe revertir por ReentrancyGuard.
-
-### Fuzz
-
-- `price ∈ [1, type(uint128).max]` (o rango acotado).
-- `feeBps ∈ [0, 1000]` (ej. máx 10 %).
-- Asegurar que suma de payouts ≤ `price` y sin underflow.
+| Suite | Ubicación | Cobertura |
+|-------|-----------|-----------|
+| Unit / e2e | `test/NFTMarketplace.t.sol` | List→Cancel→Relist→Buy, reverts |
+| Royalty | `test/unit/NFTMarketplace.royalty.t.sol` | Fee/royalty/seller + cap |
+| Attack | `test/attack/ReentrancyAttack.t.sol` | Seller/buyer reentrancy |
+| Fuzz | `test/fuzz/NFTMarketplace.fuzz.t.sol` | 1000 runs c/u |
+| UI | `frontend` Vitest | Theme + env |
 
 ---
 
 ## 10. Criterios de aceptación
 
-- [x] Scaffold Foundry: `foundry.toml` (`solc = 0.8.24`, fuzz runs = 1000), remappings OZ + forge-std *(Fase 0)*
-- [x] Tests TDD list/cancel/buy definidos *(Fase 1)*
-- [x] `listItem` con escrow (`safeTransferFrom`) + `ItemListed` + `getListing` *(Fase 2)*
-- [x] `cancelListing` con CEI + `nonReentrant` (ReentrancyGuard custom) *(Fase 3)*
-- [x] `buyItem` sin royalty: fee + seller, CEI, `.call{value}`, refund exceso *(Fase 4)*
-- [x] ERC-2981 vía `supportsInterface` + split fee/royalty/seller (royalty capeada) *(Fase 5)*
-- [x] ReentrancyGuard + CEI evidenciado con attack suite SWC-107 *(Fase 6)*
-- [x] Fuzz `price` / `feeBps` / royalty con `bound()` *(Fase 7)*
-- [x] Gas optimizado + `.gas-snapshot` + `doc/GAS.md` + NatSpec *(Fase 8)*
-- [x] `pragma solidity 0.8.24;` en todos los contratos.
-- [x] Escrow o approval validado antes de compra atómica.
-- [x] CEI en `buyItem` y `cancelListing`.
-- [x] ReentrancyGuard en esas dos funciones.
-- [x] Detección ERC-2981 vía `supportsInterface`.
-- [x] Pagos solo con `.call{value}("")`.
-- [x] Custom errors (sin strings en `require`).
-- [x] Tests e2e, reentrancy y fuzz pasando con `forge test`.
+- [x] Scaffold Foundry (`0.8.24`, fuzz 1000)
+- [x] TDD list/cancel/buy
+- [x] Escrow `safeTransferFrom` + `ItemListed`
+- [x] `cancelListing` CEI + `nonReentrant`
+- [x] `buyItem` fee/seller + refund exceso
+- [x] ERC-2981 + cap
+- [x] Attack suite SWC-107
+- [x] Fuzz con `bound()`
+- [x] Gas opt + `.gas-snapshot` + NatSpec
+- [x] Custom errors / `.call{value}` / pragma fijo
+- [x] Demo frontend (deploy Anvil + tema)
 
 ---
 
-## 11. Diagramas relacionados
+## 11. Documentos relacionados
 
 | Documento | Contenido |
 |-----------|-----------|
-| [diagrama-flujo.md](./diagrama-flujo.md) | Flujo de procesos de negocio (list / buy / cancel / royalties) |
-| [diagrama-clases.md](./diagrama-clases.md) | Estructura de contratos, structs e interfaces |
-| [flujograma.md](./flujograma.md) | Flujograma detallado de decisión y payouts |
-| [SWC-AUDIT.md](./SWC-AUDIT.md) | Matriz SWC-100–136 + campañas de reentrancy |
-| [GAS.md](./GAS.md) | Baseline / post-opt gas + tradeoffs |
+| [README.md](./README.md) | Índice de `doc/` |
+| [diagrama-flujo.md](./diagrama-flujo.md) | Flujos de negocio |
+| [diagrama-clases.md](./diagrama-clases.md) | UML contratos / tests / demo |
+| [flujograma.md](./flujograma.md) | Operativo + payouts + pipeline |
+| [SWC-AUDIT.md](./SWC-AUDIT.md) | SWC-100–136 |
+| [GAS.md](./GAS.md) | Gas report y tradeoffs |
+| [DEPLOY.md](./DEPLOY.md) | Anvil + UI |
 
 ---
 
@@ -207,8 +198,8 @@ Orden de cálculo (sobre `price`):
 
 | Riesgo | Mitigación |
 |--------|------------|
-| Reentrancy en pagos ETH | CEI + ReentrancyGuard |
-| Royalty > precio | Cap / validación antes de restar |
-| NFT sin approval / no escrow | `safeTransferFrom` en list o check `getApproved` / `isApprovedForAll` |
-| Fee BPS inválido | Bound en constructor / fuzz |
-| Contratos que rechazan ETH | `TransferFailed()`; documentar que sellers/royalty deben poder recibir ETH |
+| Reentrancy en pagos ETH | CEI + ReentrancyGuard transient |
+| Royalty > remanente | Cap a `price - fee` |
+| NFT sin approval | `approve` + `safeTransferFrom` en list |
+| Receptor rechaza ETH | `TransferFailed()`; participantes deben poder recibir ETH |
+| Fee BPS de deploy | Trust en constructor; fuzz acota escenarios |

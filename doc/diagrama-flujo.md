@@ -1,6 +1,6 @@
 # Diagrama de flujo — NFT Marketplace
 
-Flujo de procesos de negocio del marketplace (vista de alto nivel).
+Flujos de negocio **as-built** (v1 sin `updateListing`). Ver también [flujograma.md](./flujograma.md) y [DEPLOY.md](./DEPLOY.md) (UI).
 
 ## 1. Ciclo de vida completo del listing
 
@@ -12,13 +12,11 @@ flowchart TD
     Idle --> SellerAction{Acción del Seller}
     SellerAction -->|listItem| List[Listar NFT]
     SellerAction -->|cancelListing| Cancel[Cancelar listing]
-    SellerAction -->|updateListing| Update[Actualizar precio]
 
     Idle --> BuyerAction{Acción del Buyer}
     BuyerAction -->|buyItem + ETH| Buy[Comprar NFT]
 
     List --> Listed[NFT en escrow<br/>Listing activo]
-    Update --> Listed
     Cancel --> Returned[NFT devuelto al Seller]
     Returned --> Idle
 

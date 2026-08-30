@@ -22,6 +22,7 @@ Marketplace NFT con **escrow**, ventas a precio fijo, royalties **ERC-2981**, fe
 
 | Doc | Descripción |
 |-----|-------------|
+| [doc/README.md](./doc/README.md) | Índice de documentación |
 | [doc/PLANIFICACION.md](./doc/PLANIFICACION.md) | Plan, fases TDD y criterios de aceptación |
 | [doc/diagrama-flujo.md](./doc/diagrama-flujo.md) | Diagrama de flujo de procesos |
 | [doc/diagrama-clases.md](./doc/diagrama-clases.md) | Diagrama de clases |

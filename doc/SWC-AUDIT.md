@@ -4,11 +4,11 @@ Verificación de `NFTMarketplace` contra el [SWC Registry](https://swcregistry.i
 
 > **Nota:** El SWC Registry no se mantiene activamente desde ~2020. Complementar con [SCSVS](https://github.com/ComposableSecurity/SCSVS) y [EEA EthTrust](https://entethalliance.org/specs/ethtrust/).
 
-**Contrato auditado:** `src/NFTMarketplace.sol` (+ `src/interfaces/INFTMarketplace.sol`, `src/utils/ReentrancyGuard.sol`)  
-**Fecha:** 2026-08-29  
+**Contrato auditado:** `src/NFTMarketplace.sol` (+ `src/interfaces/INFTMarketplace.sol`, `src/utils/ReentrancyGuard.sol` transient EIP-1153)  
+**Fecha:** 2026-08-30 (docs actualizados post-demo UI)  
 **Referencia tests:** `test/NFTMarketplace.t.sol`, `test/unit/`, `test/attack/`, `test/fuzz/`  
-**Fase:** 8 (módulo cerrado)  
-**Gas:** [`GAS.md`](./GAS.md)
+**Fase:** 8 + demo frontend ✅  
+**Gas:** [`GAS.md`](./GAS.md) · **Deploy UI:** [`DEPLOY.md`](./DEPLOY.md)
 
 ---
 
@@ -27,7 +27,7 @@ Verificación de `NFTMarketplace` contra el [SWC Registry](https://swcregistry.i
 | Principio | Estado |
 |-----------|--------|
 | CEI antes de transfers / `.call{value}` | ✅ `cancelListing` / `buyItem` |
-| `ReentrancyGuard` custom en buy/cancel | ✅ + `test/attack/ReentrancyAttack.t.sol` |
+| `ReentrancyGuard` **transient** (EIP-1153) | ✅ + `test/attack/ReentrancyAttack.t.sol` |
 | Custom errors (no `require` strings) | ✅ |
 | Pragma fijo `0.8.24` | ✅ |
 | ETH solo con `.call` + check success | ✅ `_pay` → `TransferFailed` |
@@ -124,7 +124,7 @@ Royalties solo si `supportsInterface(IERC2981)`; monto capeado a `price - protoc
 |-----------|----------|--------|
 | Custom errors | ✅ | `ItemNotForSale`, `PriceNotMet`, `NotItemOwner`, `TransferFailed`, `ZeroPrice` |
 | CEI | ✅ | `buyItem` / `cancelListing` |
-| ReentrancyGuard | ✅ | Custom state-based; attack suite |
+| ReentrancyGuard | ✅ | Custom **transient** (Cancun); attack suite |
 | Safe ERC-721 escrow | ✅ | `safeTransferFrom` + receiver en marketplace |
 | ETH `.call` checked | ✅ | `_pay` |
 | NatSpec públicas/externas | ✅ | |
@@ -169,4 +169,8 @@ Actor: `test/attack/MaliciousActor.sol`.
 - [EIP-721](https://eips.ethereum.org/EIPS/eip-721)
 - [EIP-2981](https://eips.ethereum.org/EIPS/eip-2981)
 - Plantilla monorepo: [`04-erc721/doc/SWC-AUDIT.md`](../../04-erc721/doc/SWC-AUDIT.md)
+- Campañas: ver sección “Campañas de ataque” arriba
+- Gas: [`GAS.md`](./GAS.md)
+- Deploy / UI: [`DEPLOY.md`](./DEPLOY.md)
 - Plan: [`PLANIFICACION.md`](./PLANIFICACION.md)
+- Índice: [`README.md`](./README.md)

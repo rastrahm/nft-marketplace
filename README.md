@@ -2,7 +2,7 @@
 
 Marketplace NFT con **escrow**, ventas a precio fijo, royalties **ERC-2981**, fee de protocolo y patrones seguros (CEI + ReentrancyGuard). Solidity `0.8.24` + Foundry.
 
-**Estado:** Fases **0–8** ✅ (módulo cerrado). Gas: ver [`doc/GAS.md`](./doc/GAS.md).
+**Estado:** Fases **0–8** ✅ + **demo Next.js** (tema claro/oscuro). Gas: [`doc/GAS.md`](./doc/GAS.md) · Deploy UI: [`doc/DEPLOY.md`](./doc/DEPLOY.md).
 
 ---
 
@@ -14,6 +14,7 @@ Marketplace NFT con **escrow**, ventas a precio fijo, royalties **ERC-2981**, fe
 | Tooling | Foundry (`forge` / `cast` / `anvil`) |
 | Librerías | OpenZeppelin Contracts v5.2, forge-std |
 | Estándares | ERC-721, ERC-165, ERC-2981 |
+| UI demo | Next.js 15, ethers v6, Zod, Vitest · tema claro/oscuro · `/ayuda` |
 
 ---
 
@@ -27,6 +28,26 @@ Marketplace NFT con **escrow**, ventas a precio fijo, royalties **ERC-2981**, fe
 | [doc/flujograma.md](./doc/flujograma.md) | Flujograma operativo y payouts |
 | [doc/SWC-AUDIT.md](./doc/SWC-AUDIT.md) | Auditoría SWC + mapeo a tests de ataque |
 | [doc/GAS.md](./doc/GAS.md) | Optimización de gas y snapshot |
+| [doc/DEPLOY.md](./doc/DEPLOY.md) | Anvil + deploy + frontend |
+
+---
+
+## Demo UI
+
+```shell
+# Terminal 1
+anvil
+
+# Terminal 2
+forge script script/Deploy.s.sol:Deploy --rpc-url http://127.0.0.1:8545 --broadcast
+
+# Terminal 3
+cd frontend && cp .env.example .env.local
+# completar addresses del deploy
+npm install && npm run dev
+```
+
+Tema claro/oscuro: botón en la barra superior (`localStorage`: `market-theme`).
 
 ---
 
@@ -48,11 +69,11 @@ forge test
 ## Estructura
 
 ```
-src/                 # Contratos (NFTMarketplace en fases siguientes)
-test/                # Unit, fuzz y seguridad
-test/mocks/          # MockERC721, MockERC721Royalty, MaliciousActor
-script/              # Scripts de deploy
-doc/                 # Planificación y diagramas
+src/                 # NFTMarketplace + DemoERC721
+test/                # Unit, fuzz, attack
+script/Deploy.s.sol  # Deploy local para la demo
+frontend/            # Next.js App Router
+doc/                 # Plan, SWC, gas, deploy
 lib/                 # Dependencias (gitignored)
 ```
 
@@ -66,4 +87,5 @@ forge test
 forge test --fuzz-runs 1000
 forge fmt
 forge snapshot
+cd frontend && npm test && npm run dev
 ```

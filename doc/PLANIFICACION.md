@@ -30,7 +30,7 @@ Construir un marketplace NFT basado en **escrow** con Foundry y Solidity `0.8.24
 - Ofertas / bidding (auctions).
 - Pagos en ERC-20.
 - Batch listings.
-- Frontend / indexación off-chain.
+- ~~Frontend / indexación off-chain.~~ → **Demo Next.js añadida** (`frontend/`, ver `doc/DEPLOY.md`).
 
 ---
 

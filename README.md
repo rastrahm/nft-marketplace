@@ -14,7 +14,7 @@ Marketplace NFT con **escrow**, ventas a precio fijo, royalties **ERC-2981**, fe
 | Tooling | Foundry (`forge` / `cast` / `anvil`) |
 | Librerías | OpenZeppelin Contracts v5.2, forge-std |
 | Estándares | ERC-721, ERC-165, ERC-2981 |
-| UI demo | Next.js 15, ethers v6, Zod, Vitest · tema claro/oscuro · `/ayuda` |
+| UI demo | Next.js 15 · 3 zonas (catálogo / mintear / vender) · tema · `/ayuda` |
 
 ---
 
@@ -35,6 +35,12 @@ Marketplace NFT con **escrow**, ventas a precio fijo, royalties **ERC-2981**, fe
 
 ## Demo UI
 
+Tres zonas en `frontend/`:
+
+1. **En venta** — catálogo de listings (comprar / cancelar)  
+2. **Crear NFT** — mintear a la wallet (no publica)  
+3. **Poner a la venta** — publish (approve + `listItem`, 2 firmas)
+
 ```shell
 # Terminal 1
 anvil
@@ -48,7 +54,8 @@ cd frontend && cp .env.example .env.local
 npm install && npm run dev
 ```
 
-Tema claro/oscuro: botón en la barra superior (`localStorage`: `market-theme`).
+Detalle: [`doc/DEPLOY.md`](./doc/DEPLOY.md) · ayuda in-app: `/ayuda`.  
+Tema claro/oscuro: barra superior (`localStorage`: `market-theme`).
 
 ---
 

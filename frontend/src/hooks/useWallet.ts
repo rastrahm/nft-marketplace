@@ -51,15 +51,31 @@ export function useWallet(env: PublicEnv | null) {
       await bp.send("eth_requestAccounts", []);
       const network = await bp.getNetwork();
       if (Number(network.chainId) !== env.NEXT_PUBLIC_CHAIN_ID) {
+        const chainIdHex = `0x${env.NEXT_PUBLIC_CHAIN_ID.toString(16)}`;
         try {
           await window.ethereum?.request({
             method: "wallet_switchEthereumChain",
-            params: [{ chainId: `0x${env.NEXT_PUBLIC_CHAIN_ID.toString(16)}` }],
+            params: [{ chainId: chainIdHex }],
           });
-        } catch {
-          throw new Error(
-            `Cambia la red a chainId ${env.NEXT_PUBLIC_CHAIN_ID} (Anvil = 31337)`,
-          );
+        } catch (switchErr) {
+          const code = (switchErr as { code?: number })?.code;
+          if (code === 4902 || code === -32603) {
+            await window.ethereum?.request({
+              method: "wallet_addEthereumChain",
+              params: [
+                {
+                  chainId: chainIdHex,
+                  chainName: "Anvil Local",
+                  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+                  rpcUrls: [env.NEXT_PUBLIC_RPC_URL],
+                },
+              ],
+            });
+          } else {
+            throw new Error(
+              `Cambia la red a chainId ${env.NEXT_PUBLIC_CHAIN_ID} (Anvil = 31337). RPC: ${env.NEXT_PUBLIC_RPC_URL}`,
+            );
+          }
         }
       }
       await refresh(bp);

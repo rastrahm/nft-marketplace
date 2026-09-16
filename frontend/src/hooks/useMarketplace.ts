@@ -17,13 +17,21 @@ export type MarketSnapshot = {
   nftSymbol: string;
 };
 
-export type ListingView = {
+/** Listing activo en el catálogo de ventas. */
+export type CatalogListing = {
+  tokenId: bigint;
   seller: string;
   price: bigint;
-  active: boolean;
+};
+
+/** NFT en custodia de la wallet (no en escrow). */
+export type OwnedToken = {
+  tokenId: bigint;
 };
 
 const ZERO = "0x0000000000000000000000000000000000000000";
+/** Rango de IDs a escanear en la demo (deploy 1–3 + mint manual). */
+const SCAN_MAX_TOKEN_ID = 64n;
 
 /**
  * Lectura/escritura del marketplace + DemoERC721.
@@ -42,11 +50,8 @@ export function useMarketplace(
     nftName: "—",
     nftSymbol: "—",
   });
-  const [listing, setListing] = useState<ListingView>({
-    seller: ZERO,
-    price: 0n,
-    active: false,
-  });
+  const [catalog, setCatalog] = useState<CatalogListing[]>([]);
+  const [owned, setOwned] = useState<OwnedToken[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
@@ -63,27 +68,75 @@ export function useMarketplace(
     setSnap({ feeBps, feeRecipient, nftName, nftSymbol });
   }, [env]);
 
-  const refreshListing = useCallback(
-    async (tokenId: string) => {
-      if (!env) return;
-      const id = BigInt(tokenId || "0");
-      const { marketplace } = createReadContracts(env);
-      const row = (await marketplace.getListing(env.NEXT_PUBLIC_NFT_ADDRESS, id)) as {
-        seller: string;
-        price: bigint;
-      };
-      setListing({
-        seller: row.seller,
-        price: row.price,
-        active: row.seller !== ZERO,
-      });
-    },
-    [env],
-  );
+  /**
+   * Catálogo: eventos ItemListed + verificación getListing (solo activos).
+   */
+  const refreshCatalog = useCallback(async () => {
+    if (!env) return;
+    const { marketplace } = createReadContracts(env);
+    const nftAddr = env.NEXT_PUBLIC_NFT_ADDRESS.toLowerCase();
+
+    const listed = await marketplace.queryFilter(marketplace.filters.ItemListed());
+    const candidates = new Set<bigint>();
+    for (const ev of listed) {
+      const args = (ev as { args?: { nftAddress?: string; tokenId?: bigint } }).args;
+      if (!args?.nftAddress || args.tokenId == null) continue;
+      if (args.nftAddress.toLowerCase() !== nftAddr) continue;
+      candidates.add(args.tokenId);
+    }
+    // Fallback demo: sondear 1..N por si Anvil reinició logs o no hay eventos aún
+    for (let i = 1n; i <= SCAN_MAX_TOKEN_ID; i++) candidates.add(i);
+
+    const rows = await Promise.all(
+      [...candidates].map(async (tokenId) => {
+        const row = (await marketplace.getListing(env.NEXT_PUBLIC_NFT_ADDRESS, tokenId)) as {
+          seller: string;
+          price: bigint;
+        };
+        if (row.seller === ZERO) return null;
+        return { tokenId, seller: row.seller, price: row.price } satisfies CatalogListing;
+      }),
+    );
+
+    setCatalog(
+      rows
+        .filter((r): r is CatalogListing => r != null)
+        .sort((a, b) => (a.tokenId < b.tokenId ? -1 : a.tokenId > b.tokenId ? 1 : 0)),
+    );
+  }, [env]);
+
+  /**
+   * NFTs que la wallet conectada posee (ownerOf), no los del escrow.
+   */
+  const refreshOwned = useCallback(async () => {
+    if (!env || !address) {
+      setOwned([]);
+      return;
+    }
+    const { nft } = createReadContracts(env);
+    const found: OwnedToken[] = [];
+    const checks = Array.from({ length: Number(SCAN_MAX_TOKEN_ID) }, (_, i) => BigInt(i + 1));
+    await Promise.all(
+      checks.map(async (tokenId) => {
+        try {
+          const owner = ((await nft.ownerOf(tokenId)) as string).toLowerCase();
+          if (owner === address.toLowerCase()) found.push({ tokenId });
+        } catch {
+          /* token inexistente */
+        }
+      }),
+    );
+    found.sort((a, b) => (a.tokenId < b.tokenId ? -1 : a.tokenId > b.tokenId ? 1 : 0));
+    setOwned(found);
+  }, [env, address]);
+
+  const refreshAll = useCallback(async () => {
+    await Promise.all([refreshMeta(), refreshCatalog(), refreshOwned()]);
+  }, [refreshMeta, refreshCatalog, refreshOwned]);
 
   useEffect(() => {
-    void refreshMeta().catch((err) => setError(formatContractError(err)));
-  }, [refreshMeta]);
+    void refreshAll().catch((err) => setError(formatContractError(err)));
+  }, [refreshAll]);
 
   const run = useCallback(
     async (label: string, fn: () => Promise<void>) => {
@@ -97,87 +150,108 @@ export function useMarketplace(
       try {
         await fn();
         setStatus(label);
-        await refreshMeta();
+        await refreshAll();
       } catch (err) {
         setError(formatContractError(err));
       } finally {
         setBusy(false);
       }
     },
-    [env, signer, refreshMeta],
+    [env, signer, refreshAll],
   );
 
   /**
-   * Mintea un token demo a la wallet conectada.
-   * @param {string} tokenId
+   * Sugiere el próximo tokenId libre para mintear.
    */
+  const suggestMintId = useCallback(async (): Promise<string> => {
+    if (!env) return "10";
+    const { nft } = createReadContracts(env);
+    for (let i = 10n; i <= SCAN_MAX_TOKEN_ID; i++) {
+      try {
+        await nft.ownerOf(i);
+      } catch {
+        return i.toString();
+      }
+    }
+    return (SCAN_MAX_TOKEN_ID + 1n).toString();
+  }, [env]);
+
   const mintDemo = (tokenId: string) =>
-    run("NFT minteado", async () => {
+    run("NFT minteado — ya podés ponerlo a la venta abajo", async () => {
       if (!address) throw new Error("Sin address");
+      const id = BigInt(tokenId);
+      const { nft: nftRead } = createReadContracts(env!);
+      try {
+        const owner = (await nftRead.ownerOf(id)) as string;
+        throw new Error(
+          `Token #${tokenId} ya existe (owner ${owner.slice(0, 10)}…). Pedí otro ID (botón “Sugerir ID”).`,
+        );
+      } catch (err) {
+        if (err instanceof Error && err.message.includes("ya existe")) throw err;
+      }
       const { nft } = createWriteContracts(env!, signer!);
-      const tx = await nft.mint(address, BigInt(tokenId));
+      const tx = await nft.mint(address, id);
       await tx.wait();
     });
 
-  /**
-   * Aprueba y lista un NFT en escrow.
-   * @param {string} tokenId
-   * @param {string} priceEth
-   */
   const listItem = (tokenId: string, priceEth: string) =>
-    run("Listado creado", async () => {
+    run("Publicado en el catálogo de ventas", async () => {
+      if (!address) throw new Error("Sin address");
       const id = BigInt(tokenId);
       const price = parseEthInput(priceEth);
       if (price <= 0n) throw new Error("El precio debe ser > 0");
+      const { nft: nftRead } = createReadContracts(env!);
+      let owner: string;
+      try {
+        owner = (await nftRead.ownerOf(id)) as string;
+      } catch {
+        throw new Error(`Token #${tokenId} no existe. Mintealo en “Crear NFT” primero.`);
+      }
+      if (owner.toLowerCase() !== address.toLowerCase()) {
+        throw new Error(
+          `No sos el owner (#${tokenId}). Conectá la wallet dueña o minteá uno nuevo.`,
+        );
+      }
       const { marketplace, nft } = createWriteContracts(env!, signer!);
+      setStatus("1/2 · Aprobá el NFT en la wallet…");
       const approveTx = await nft.approve(env!.NEXT_PUBLIC_MARKETPLACE_ADDRESS, id);
       await approveTx.wait();
+      setStatus("2/2 · Confirmá el listado en la wallet…");
       const listTx = await marketplace.listItem(env!.NEXT_PUBLIC_NFT_ADDRESS, id, price);
       await listTx.wait();
-      await refreshListing(tokenId);
     });
 
-  /**
-   * Cancela un listing propio.
-   * @param {string} tokenId
-   */
   const cancelListing = (tokenId: string) =>
-    run("Listing cancelado", async () => {
+    run("Listing cancelado — NFT vuelto a tu wallet", async () => {
       const { marketplace } = createWriteContracts(env!, signer!);
       const tx = await marketplace.cancelListing(
         env!.NEXT_PUBLIC_NFT_ADDRESS,
         BigInt(tokenId),
       );
       await tx.wait();
-      await refreshListing(tokenId);
     });
 
-  /**
-   * Compra un listing pagando el precio en ETH.
-   * @param {string} tokenId
-   * @param {string} priceEth
-   */
-  const buyItem = (tokenId: string, priceEth: string) =>
+  const buyItem = (tokenId: string, priceWei: bigint) =>
     run("Compra confirmada", async () => {
-      const price = parseEthInput(priceEth);
+      if (priceWei <= 0n) throw new Error("Precio inválido");
       const { marketplace } = createWriteContracts(env!, signer!);
       const tx = await marketplace.buyItem(
         env!.NEXT_PUBLIC_NFT_ADDRESS,
         BigInt(tokenId),
-        { value: price },
+        { value: priceWei },
       );
       await tx.wait();
-      await refreshListing(tokenId);
     });
 
   return {
     snap,
-    listing,
+    catalog,
+    owned,
     busy,
     error,
     status,
-    refreshMeta,
-    refreshListing,
+    refreshAll,
+    suggestMintId,
     mintDemo,
     listItem,
     cancelListing,

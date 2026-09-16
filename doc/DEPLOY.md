@@ -1,6 +1,16 @@
 # Deploy local — demo Next.js
 
-Guía para ver el marketplace funcionando con Anvil + UI (tema claro/oscuro).
+Guía para ver el marketplace con Anvil + UI (tema claro/oscuro).
+
+La interfaz está separada en **tres zonas**:
+
+| Zona | Qué hace |
+|------|----------|
+| **1 · En venta** | Catálogo de listings activos (comprar / cancelar) |
+| **2 · Crear NFT** | Solo mintear a tu wallet (no publica) |
+| **3 · Poner a la venta** | Elegir NFT propio + precio → approve + `listItem` |
+
+Manual in-app: **http://127.0.0.1:3000/ayuda**
 
 **Requisitos:** Foundry (`~/.foundry/bin` en `PATH`) · Node.js **≥ 20.19** · MetaMask (u otra wallet).
 
@@ -22,7 +32,7 @@ Chain ID: **31337**. Dejá esta terminal abierta.
 | Address | `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266` |
 | Private key | `0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80` |
 
-Importala en MetaMask (red local).
+Importala en MetaMask (red local) si querés operar los tokens **1, 2, 3** del deploy.
 
 ---
 
@@ -82,17 +92,26 @@ Abrí **http://127.0.0.1:3000**
 ### MetaMask
 
 1. Red: RPC `http://127.0.0.1:8545`, chain **31337**, símbolo ETH.  
-2. Importá la private key de la cuenta #0.  
-3. En la UI: **Conectar wallet**.
+2. Importá la private key de la cuenta #0 (opcional pero útil).  
+3. En la UI: **Conectar wallet**.  
+4. Si reiniciaste Anvil: MetaMask → Settings → Advanced → **Reset account**.
 
-### Flujo sugerido
+### Flujo sugerido (UI en 3 zonas)
 
-1. **Ver listing** (token `1`) — sin oferta o ya listado.  
-2. **Listar** con precio p.ej. `0.1` ETH (approve + escrow).  
-3. Opcional: otra cuenta Anvil → **Comprar**.  
-4. O **Cancelar** con la misma wallet seller.
+**Camino A — tokens del deploy (Anvil #0)**
 
-Manual in-app: **http://127.0.0.1:3000/ayuda**
+1. Conectá cuenta #0.  
+2. Zona **3**: deberías ver `#1`, `#2`, `#3` → elegí uno, precio `0.1` → **Publicar** (2 firmas: NFT approve + market).  
+3. Zona **1**: aparece el listing.  
+4. Otra cuenta Anvil → **Comprar**.
+
+**Camino B — mintear con tu wallet**
+
+1. Zona **2**: **Sugerir ID libre** (p.ej. 10) → **Mintear a mi wallet**.  
+2. Zona **3**: ese token + precio → **Publicar**.  
+3. Zona **1**: comprar desde otra cuenta.
+
+> No uses “Mintear” sobre IDs 1–3: ya existen y el contrato revierte.
 
 ---
 

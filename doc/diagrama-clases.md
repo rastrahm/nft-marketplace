@@ -112,10 +112,21 @@ classDiagram
 ```mermaid
 classDiagram
     direction TB
-    class MarketplaceApp
+    class MarketplaceApp {
+      +catalogoEnVenta
+      +crearNFT
+      +ponerALaVenta
+    }
     class AppToolbar
     class ThemeToggle
-    class useMarketplace
+    class useMarketplace {
+      +catalog
+      +owned
+      +mintDemo()
+      +listItem()
+      +buyItem()
+      +cancelListing()
+    }
     class useWallet
     class useTheme
     class PublicEnv
@@ -129,6 +140,8 @@ classDiagram
     useWallet ..> PublicEnv
 ```
 
+La UI expone tres zonas: **En venta** (catálogo), **Crear NFT** (mint), **Poner a la venta** (approve + list).
+
 ## 4. Responsabilidades
 
 | Artefacto | Rol |
@@ -139,7 +152,8 @@ classDiagram
 | `DemoERC721` | NFT de demo para Anvil / UI |
 | `MockERC721` / `MockERC721Royalty` | Tests Foundry |
 | `MaliciousActor` | Vectores SWC-107 |
-| `MarketplaceApp` | UI: mintear, listar, cancelar, comprar |
+| `MarketplaceApp` | UI en 3 zonas: catálogo / mintear / poner a la venta |
+| `useMarketplace` | Catálogo on-chain, owned tokens, mint/list/buy/cancel |
 | `ThemeToggle` / `useTheme` | Claro / oscuro (`market-theme`) |
 
 ## 5. Dependencias (resumen)

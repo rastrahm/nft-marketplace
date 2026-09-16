@@ -145,19 +145,27 @@ flowchart LR
 
 ## 6. Flujo UI (demo)
 
+La UI separa **catálogo**, **minteo** y **publicación** (evita mezclar botones).
+
 ```mermaid
 flowchart TD
-    U1[Abrir localhost:3000] --> U2[Conectar wallet Anvil]
-    U2 --> U3{Acción}
-    U3 -->|Mintear demo| U4[DemoERC721.mint]
-    U3 -->|Listar| U5[approve + listItem]
-    U3 -->|Cancelar| U6[cancelListing]
-    U3 -->|Comprar| U7[buyItem + ETH]
-    U3 -->|Tema| U8[Claro/Oscuro localStorage]
-    U5 --> U9[Ver listing]
-    U6 --> U9
-    U7 --> U9
+    U1[Abrir localhost:3000] --> U2[Conectar wallet]
+    U2 --> Z1[Zona 1 · En venta]
+    U2 --> Z2[Zona 2 · Crear NFT]
+    U2 --> Z3[Zona 3 · Poner a la venta]
+    Z2 -->|mint ID libre| M[DemoERC721.mint]
+    M --> Z3
+    Z3 -->|approve + listItem| L[Listing activo]
+    L --> Z1
+    Z1 -->|Comprar| B[buyItem + ETH]
+    Z1 -->|Cancelar si seller| C[cancelListing]
+    U2 -->|Tema| T[Claro/Oscuro localStorage]
 ```
+
+Catálogo: eventos `ItemListed` + verificación `getListing`.  
+NFTs propios: escaneo `ownerOf` (demo, IDs 1…64).
+
+Manual: `/ayuda` · setup: [`DEPLOY.md`](./DEPLOY.md).
 
 ## 7. Cómo leer estos diagramas
 

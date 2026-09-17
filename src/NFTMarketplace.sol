@@ -43,10 +43,14 @@ contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
      * @dev Checks: price > 0, caller = owner. Effects: 2 SSTOREs. Interactions: escrow `safeTransferFrom`.
      */
     function listItem(address nftAddress, uint256 tokenId, uint256 price) external {
-        if (price == 0) revert ZeroPrice();
+        if (price == 0) {
+            revert ZeroPrice();
+        }
 
         IERC721 nft = IERC721(nftAddress);
-        if (nft.ownerOf(tokenId) != msg.sender) revert NotItemOwner();
+        if (nft.ownerOf(tokenId) != msg.sender) {
+            revert NotItemOwner();
+        }
 
         _listings[nftAddress][tokenId] = Listing({seller: msg.sender, price: price});
 
@@ -61,8 +65,12 @@ contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
      */
     function cancelListing(address nftAddress, uint256 tokenId) external nonReentrant {
         Listing memory listing = _listings[nftAddress][tokenId];
-        if (listing.seller == address(0)) revert ItemNotForSale();
-        if (listing.seller != msg.sender) revert NotItemOwner();
+        if (listing.seller == address(0)) {
+            revert ItemNotForSale();
+        }
+        if (listing.seller != msg.sender) {
+            revert NotItemOwner();
+        }
 
         delete _listings[nftAddress][tokenId];
 
@@ -77,8 +85,12 @@ contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
      */
     function buyItem(address nftAddress, uint256 tokenId) external payable nonReentrant {
         Listing memory listing = _listings[nftAddress][tokenId];
-        if (listing.seller == address(0)) revert ItemNotForSale();
-        if (msg.value < listing.price) revert PriceNotMet();
+        if (listing.seller == address(0)) {
+            revert ItemNotForSale();
+        }
+        if (msg.value < listing.price) {
+            revert PriceNotMet();
+        }
 
         address seller = listing.seller;
         uint256 price = listing.price;
@@ -178,6 +190,8 @@ contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
      */
     function _pay(address to, uint256 amount) private {
         (bool success,) = to.call{value: amount}("");
-        if (!success) revert TransferFailed();
+        if (!success) {
+            revert TransferFailed();
+        }
     }
 }

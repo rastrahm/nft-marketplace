@@ -90,7 +90,9 @@ contract MaliciousActor is IERC721Receiver {
     }
 
     function _tryReenter() private {
-        if (attack == Attack.None) return;
+        if (attack == Attack.None) {
+            return;
+        }
 
         unchecked {
             ++reenterCount;

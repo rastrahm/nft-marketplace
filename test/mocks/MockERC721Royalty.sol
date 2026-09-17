@@ -17,12 +17,9 @@ contract MockERC721Royalty is ERC721, ERC2981 {
      * @param royaltyReceiver_ Beneficiario ERC-2981.
      * @param royaltyFeeNumerator_ Fee en basis points (denominador 10_000).
      */
-    constructor(
-        string memory name_,
-        string memory symbol_,
-        address royaltyReceiver_,
-        uint96 royaltyFeeNumerator_
-    ) ERC721(name_, symbol_) {
+    constructor(string memory name_, string memory symbol_, address royaltyReceiver_, uint96 royaltyFeeNumerator_)
+        ERC721(name_, symbol_)
+    {
         _setDefaultRoyalty(royaltyReceiver_, royaltyFeeNumerator_);
     }
 

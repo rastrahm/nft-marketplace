@@ -95,8 +95,7 @@ contract NFTMarketplaceRoyaltyTest is Test {
      */
     function test_buyItem_capsRoyaltyToRemainingAfterFee() public {
         // Royalty 99% + fee 2.5% => royalty se capea a price - fee
-        MockERC721Royalty highRoyaltyNft =
-            new MockERC721Royalty("High Royalty", "HR", royaltyReceiver, 9900);
+        MockERC721Royalty highRoyaltyNft = new MockERC721Royalty("High Royalty", "HR", royaltyReceiver, 9900);
         uint256 tokenId = 42;
         highRoyaltyNft.mint(seller, tokenId);
 

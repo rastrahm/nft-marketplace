@@ -89,16 +89,13 @@ contract NFTMarketplaceFuzzTest is Test {
     /**
      * @notice List + buy con ERC-2981: fee + royalty (capeada) + seller = price.
      */
-    function testFuzz_buyItem_royaltyNft_payoutsSumToPrice(uint256 price, uint256 feeBps, uint256 royaltyBps)
-        public
-    {
+    function testFuzz_buyItem_royaltyNft_payoutsSumToPrice(uint256 price, uint256 feeBps, uint256 royaltyBps) public {
         price = bound(price, 1, type(uint128).max);
         feeBps = bound(feeBps, 0, 1000);
         royaltyBps = bound(royaltyBps, 0, 10_000);
 
         NFTMarketplace marketplace = new NFTMarketplace(feeBps, feeRecipient);
-        MockERC721Royalty nft =
-            new MockERC721Royalty("Fuzz Royalty", "FR", royaltyReceiver, uint96(royaltyBps));
+        MockERC721Royalty nft = new MockERC721Royalty("Fuzz Royalty", "FR", royaltyReceiver, uint96(royaltyBps));
         uint256 tokenId = 1;
         nft.mint(seller, tokenId);
 

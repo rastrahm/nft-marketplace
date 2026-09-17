@@ -15,10 +15,8 @@ contract Deploy is Script {
     uint256 internal constant FEE_BPS = 250; // 2.5%
 
     function run() external {
-        uint256 pk = vm.envOr(
-            "PRIVATE_KEY",
-            uint256(0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80)
-        );
+        uint256 pk =
+            vm.envOr("PRIVATE_KEY", uint256(0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80));
         address deployer = vm.addr(pk);
         address feeRecipient = vm.envOr("FEE_RECIPIENT", deployer);
 

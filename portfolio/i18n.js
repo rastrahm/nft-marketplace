@@ -54,7 +54,7 @@ const I18N = {
     'gas.eyebrow': '// 03 — OPTIMIZACIÓN DE GAS',
     'gas.title': 'Menos SSTORE, mismo escrow',
     'gas.lead':
-      'Fase 8: cada optimización está documentada con su <strong>tradeoff</strong> en <code>doc/GAS.md</code>. El hot path baja lecturas/escrituras de storage sin sacrificar CEI ni el guard de reentrancy.',
+      'Fase 8: cada optimización está documentada con su <strong>tradeoff</strong> en <code>doc/GAS-ES.md</code>. El hot path baja lecturas/escrituras de storage sin sacrificar CEI ni el guard de reentrancy.',
     'gas.th1': 'Optimización',
     'gas.th2': 'Tradeoff / efecto',
     'gas.r1a': 'Listing { seller, price } — 2 slots (nft/tokenId en keys)',
@@ -75,7 +75,7 @@ const I18N = {
     'swc.eyebrow': '// 04 — VERIFICACIÓN SWC',
     'swc.title': 'SWC Registry · EIP-1470',
     'swc.lead':
-      'Fase 8: matriz completa <strong>SWC-100 → SWC-136</strong> contra <code>NFTMarketplace</code>. Informe en <code>doc/SWC-AUDIT.md</code>. Conclusión: <strong>0 vulnerabilidades explotables</strong> en el alcance del marketplace.',
+      'Fase 8: matriz completa <strong>SWC-100 → SWC-136</strong> contra <code>NFTMarketplace</code>. Informe en <code>doc/SWC-AUDIT-ES.md</code>. Conclusión: <strong>0 vulnerabilidades explotables</strong> en el alcance del marketplace.',
     'swc.s1': 'Mitigados / N/A',
     'swc.s2': 'Informativos (diseño)',
     'swc.s3': 'Vulnerables',
@@ -111,7 +111,7 @@ const I18N = {
     'term.label': 'rolando@strahm:~/05-nft-marketplace',
     'term.1': 'forge test --match-path test/attack',
     'term.2': '[PASS] ReentrancyAttack · suite',
-    'term.3': 'cat doc/SWC-AUDIT.md | head',
+    'term.3': 'cat doc/SWC-AUDIT-ES.md | head',
     'term.4': 'Vulnerable: 0 · Informativos: 4 · Mitigados/N/A: 32',
     'term.5': 'echo status',
     'term.6': 'MODULE_05_CLOSED · GAS_OPT_CLOSED · SWC_CLOSED',
@@ -197,7 +197,7 @@ const I18N = {
     'gas.eyebrow': '// 03 — GAS OPTIMIZATION',
     'gas.title': 'Fewer SSTOREs, same escrow',
     'gas.lead':
-      'Phase 8: every optimization is documented with its <strong>tradeoff</strong> in <code>doc/GAS.md</code>. The hot path cuts storage reads/writes without sacrificing CEI or the reentrancy guard.',
+      'Phase 8: every optimization is documented with its <strong>tradeoff</strong> in <code>doc/GAS-EN.md</code>. The hot path cuts storage reads/writes without sacrificing CEI or the reentrancy guard.',
     'gas.th1': 'Optimization',
     'gas.th2': 'Tradeoff / effect',
     'gas.r1a': 'Listing { seller, price } — 2 slots (nft/tokenId in keys)',
@@ -218,7 +218,7 @@ const I18N = {
     'swc.eyebrow': '// 04 — SWC VERIFICATION',
     'swc.title': 'SWC Registry · EIP-1470',
     'swc.lead':
-      'Phase 8: full matrix <strong>SWC-100 → SWC-136</strong> against <code>NFTMarketplace</code>. Report in <code>doc/SWC-AUDIT.md</code>. Conclusion: <strong>0 exploitable vulnerabilities</strong> in marketplace scope.',
+      'Phase 8: full matrix <strong>SWC-100 → SWC-136</strong> against <code>NFTMarketplace</code>. Report in <code>doc/SWC-AUDIT-EN.md</code>. Conclusion: <strong>0 exploitable vulnerabilities</strong> in marketplace scope.',
     'swc.s1': 'Mitigated / N/A',
     'swc.s2': 'Informational (design)',
     'swc.s3': 'Vulnerable',
@@ -254,7 +254,7 @@ const I18N = {
     'term.label': 'rolando@strahm:~/05-nft-marketplace',
     'term.1': 'forge test --match-path test/attack',
     'term.2': '[PASS] ReentrancyAttack · suite',
-    'term.3': 'cat doc/SWC-AUDIT.md | head',
+    'term.3': 'cat doc/SWC-AUDIT-EN.md | head',
     'term.4': 'Vulnerable: 0 · Informational: 4 · Mitigated/N/A: 32',
     'term.5': 'echo status',
     'term.6': 'MODULE_05_CLOSED · GAS_OPT_CLOSED · SWC_CLOSED',

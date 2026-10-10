@@ -1,20 +1,20 @@
-# Documentación — Module 05 NFT Marketplace
+# Documentation / Documentación — Module 05 NFT Marketplace
 
-Índice de la carpeta `doc/`. Módulo **cerrado** (fases 0–8 + demo Next.js).
+Bilingual index of `doc/`. Each document is available in English and Spanish.  
+Índice bilingüe de `doc/`. Cada documento está en inglés y en español.
 
-| Documento | Contenido |
-|-----------|-----------|
-| [PLANIFICACION.md](./PLANIFICACION.md) | Objetivo, alcance, arquitectura, fases TDD, aceptación |
-| [diagrama-flujo.md](./diagrama-flujo.md) | Flujos de listado, cancelación, compra y royalties |
-| [diagrama-clases.md](./diagrama-clases.md) | UML de contratos, mocks, tests y demo |
-| [flujograma.md](./flujograma.md) | Flujograma operativo, payouts, reentrancy, pipeline |
-| [SWC-AUDIT.md](./SWC-AUDIT.md) | Matriz SWC-100–136 + campañas de ataque |
-| [GAS.md](./GAS.md) | Baseline / post-opt gas + tradeoffs |
-| [DECISIONES-Y-LOGICA.md](./DECISIONES-Y-LOGICA.md) | Decisiones técnicas, lógica del protocolo y mejoras de gas posibles |
-| [DEPLOY.md](./DEPLOY.md) | Anvil + forge script + frontend |
-| [SOCIAL.md](./SOCIAL.md) | Borradores LinkedIn / X + capturas |
+| Document / Documento | English | Español |
+|----------------------|---------|---------|
+| Docs index / Índice de docs | [README-EN.md](./README-EN.md) | [README-ES.md](./README-ES.md) |
+| Planning / Planificación | [PLANIFICACION-EN.md](./PLANIFICACION-EN.md) | [PLANIFICACION-ES.md](./PLANIFICACION-ES.md) |
+| Flow diagram / Diagrama de flujo | [diagrama-flujo-EN.md](./diagrama-flujo-EN.md) | [diagrama-flujo-ES.md](./diagrama-flujo-ES.md) |
+| Class diagram / Diagrama de clases | [diagrama-clases-EN.md](./diagrama-clases-EN.md) | [diagrama-clases-ES.md](./diagrama-clases-ES.md) |
+| Flowchart / Flujograma | [flujograma-EN.md](./flujograma-EN.md) | [flujograma-ES.md](./flujograma-ES.md) |
+| SWC audit / Auditoría SWC | [SWC-AUDIT-EN.md](./SWC-AUDIT-EN.md) | [SWC-AUDIT-ES.md](./SWC-AUDIT-ES.md) |
+| Gas | [GAS-EN.md](./GAS-EN.md) | [GAS-ES.md](./GAS-ES.md) |
+| Technical decisions / Decisiones técnicas | [DECISIONES-Y-LOGICA-EN.md](./DECISIONES-Y-LOGICA-EN.md) | [DECISIONES-Y-LOGICA-ES.md](./DECISIONES-Y-LOGICA-ES.md) |
+| Local deploy / Deploy local | [DEPLOY-EN.md](./DEPLOY-EN.md) | [DEPLOY-ES.md](./DEPLOY-ES.md) |
 
-**Contratos:** `src/NFTMarketplace.sol`, `src/mocks/DemoERC721.sol`  
-**Tests:** `forge test` → 25 tests (unit + royalty + attack + fuzz)  
-**UI:** `frontend/` → tres zonas (En venta · Crear NFT · Poner a la venta) · http://127.0.0.1:3000 · `/ayuda`  
-**Guía deploy:** [DEPLOY.md](./DEPLOY.md)
+Social media drafts / Borradores de redes: [SOCIAL.md](./SOCIAL.md) (single file / archivo único).
+
+Project overview / Resumen del proyecto: [`../README.md`](../README.md)

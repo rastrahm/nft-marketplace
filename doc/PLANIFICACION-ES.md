@@ -27,8 +27,8 @@ Marketplace NFT basado en **escrow** con Foundry y Solidity `0.8.24`:
 | Fees | `feeBps` / `feeRecipient` (immutables) |
 | Seguridad | CEI + guard transient en `buyItem` / `cancelListing`; `.call{value}` |
 | Tests | Unit/e2e, royalty, attack SWC-107, fuzz (`bound`) — **25 tests** |
-| Gas | Listing 2 slots + guard transient — ver [GAS.md](./GAS.md) |
-| Frontend | Next.js 15 demo — ver [DEPLOY.md](./DEPLOY.md) |
+| Gas | Listing 2 slots + guard transient — ver [GAS-ES.md](./GAS-ES.md) |
+| Frontend | Next.js 15 demo — ver [DEPLOY-ES.md](./DEPLOY-ES.md) |
 
 ### No incluye
 
@@ -145,9 +145,9 @@ struct Listing {
 | **3** | `cancelListing` + ReentrancyGuard | ✅ |
 | **4** | `buyItem` sin royalty | ✅ |
 | **5** | ERC-2981 path | ✅ |
-| **6** | Attack suite SWC-107 + `SWC-AUDIT.md` | ✅ |
+| **6** | Attack suite SWC-107 + `SWC-AUDIT-ES.md` | ✅ |
 | **7** | Fuzz `price` / `feeBps` / royalty | ✅ |
-| **8** | Gas + NatSpec + `GAS.md` | ✅ |
+| **8** | Gas + NatSpec + `GAS-ES.md` | ✅ |
 | **UI** | Demo Next.js + tema claro/oscuro | ✅ |
 
 ---
@@ -185,12 +185,12 @@ struct Listing {
 | Documento | Contenido |
 |-----------|-----------|
 | [README.md](./README.md) | Índice de `doc/` |
-| [diagrama-flujo.md](./diagrama-flujo.md) | Flujos de negocio |
-| [diagrama-clases.md](./diagrama-clases.md) | UML contratos / tests / demo |
-| [flujograma.md](./flujograma.md) | Operativo + payouts + pipeline |
-| [SWC-AUDIT.md](./SWC-AUDIT.md) | SWC-100–136 |
-| [GAS.md](./GAS.md) | Gas report y tradeoffs |
-| [DEPLOY.md](./DEPLOY.md) | Anvil + UI |
+| [diagrama-flujo-ES.md](./diagrama-flujo-ES.md) | Flujos de negocio |
+| [diagrama-clases-ES.md](./diagrama-clases-ES.md) | UML contratos / tests / demo |
+| [flujograma-ES.md](./flujograma-ES.md) | Operativo + payouts + pipeline |
+| [SWC-AUDIT-ES.md](./SWC-AUDIT-ES.md) | SWC-100–136 |
+| [GAS-ES.md](./GAS-ES.md) | Gas report y tradeoffs |
+| [DEPLOY-ES.md](./DEPLOY-ES.md) | Anvil + UI |
 
 ---
 

@@ -36,6 +36,31 @@ https://github.com/rastrahm/nft-marketplace
 
 ---
 
+## LinkedIn (English)
+
+I just wrapped up another module of my smart contracts suite: an **escrow-based NFT marketplace** built with Solidity 0.8.24 + Foundry.
+
+It's not just "list and buy." What I cared about was making sure the money and the NFT move correctly under pressure:
+
+- Escrow via `safeTransferFrom`
+- Protocol fee + ERC-2981 royalties (capped so the math never breaks)
+- CEI + transient ReentrancyGuard (Cancun / EIP-1153)
+- Unit tests, fuzzing (1,000 runs), and a reentrancy attack suite (SWC-107)
+- A Next.js demo with light/dark theme, so you can actually see it working instead of poking at Anvil blindly
+
+Gas: I cut the cost of `listItem` significantly (~28%) by packing the listing into 2 storage slots and removing the lock's permanent SSTORE.
+
+If you're interested in the details (diagrams, SWC audit, gas report, and local deploy), everything is in the repo:
+
+🔗 GitHub: https://github.com/rastrahm/nft-marketplace
+🔗 GitLab: https://gitlab.com/rastrahm/nft-marketplace
+
+Which part would you like me to dig into in a future post: security, gas, or the UI?
+
+\#Solidity \#Foundry \#Web3 \#NFT \#SmartContracts \#Ethereum \#OpenZeppelin \#Blockchain \#DeFi
+
+---
+
 ## X / Twitter — versión corta (1 post)
 
 Cerré un NFT marketplace con escrow en Solidity + Foundry:

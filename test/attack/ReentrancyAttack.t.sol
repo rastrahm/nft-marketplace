@@ -12,7 +12,7 @@ import {MaliciousActor} from "./MaliciousActor.sol";
 /**
  * @title ReentrancyAttackTest
  * @notice Fase 6 / SWC-107: buyer/seller maliciosos no reentran con éxito en buy/cancel.
- * @dev Referencia: `doc/SWC-AUDIT.md` · patrón monorepo `02-crypto-bank` / `04-erc721` attack suite.
+ * @dev Referencia: `doc/SWC-AUDIT-ES.md` · patrón monorepo `02-crypto-bank` / `04-erc721` attack suite.
  */
 contract ReentrancyAttackTest is Test {
     uint256 internal constant FEE_BPS = 250;

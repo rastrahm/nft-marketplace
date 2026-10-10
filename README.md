@@ -1,99 +1,45 @@
 # 05 — Gas-Optimized NFT Marketplace
 
-Marketplace NFT con **escrow**, ventas a precio fijo, royalties **ERC-2981**, fee de protocolo y patrones seguros (CEI + ReentrancyGuard). Solidity `0.8.24` + Foundry.
+Escrow NFT marketplace with ERC-2981 royalties and a protocol fee · Solidity `0.8.24` + Foundry.  
+Marketplace NFT con escrow, royalties ERC-2981 y fee de protocolo · Solidity `0.8.24` + Foundry.
 
-**Estado:** Fases **0–8** ✅ + **demo Next.js** (tema claro/oscuro). Gas: [`doc/GAS.md`](./doc/GAS.md) · Deploy UI: [`doc/DEPLOY.md`](./doc/DEPLOY.md).
+**Choose your language / Elegí tu idioma:**
 
----
-
-## Stack
-
-| Capa | Tecnología |
-|------|------------|
-| Contratos | Solidity `0.8.24` |
-| Tooling | Foundry (`forge` / `cast` / `anvil`) |
-| Librerías | OpenZeppelin Contracts v5.2, forge-std |
-| Estándares | ERC-721, ERC-165, ERC-2981 |
-| UI demo | Next.js 15 · 3 zonas (catálogo / mintear / vender) · tema · `/ayuda` |
+- 🇬🇧 [English](./README-EN.md)
+- 🇪🇸 [Español](./README-ES.md)
 
 ---
 
-## Documentación
+## Documentation / Documentación
 
-| Doc | Descripción |
-|-----|-------------|
-| [doc/README.md](./doc/README.md) | Índice de documentación |
-| [doc/PLANIFICACION.md](./doc/PLANIFICACION.md) | Plan, fases TDD y criterios de aceptación |
-| [doc/diagrama-flujo.md](./doc/diagrama-flujo.md) | Diagrama de flujo de procesos |
-| [doc/diagrama-clases.md](./doc/diagrama-clases.md) | Diagrama de clases |
-| [doc/flujograma.md](./doc/flujograma.md) | Flujograma operativo y payouts |
-| [doc/SWC-AUDIT.md](./doc/SWC-AUDIT.md) | Auditoría SWC + mapeo a tests de ataque |
-| [doc/GAS.md](./doc/GAS.md) | Optimización de gas y snapshot |
-| [doc/DEPLOY.md](./doc/DEPLOY.md) | Anvil + deploy + frontend |
+| Document / Documento | English | Español |
+|----------------------|---------|---------|
+| Project README | [README-EN.md](./README-EN.md) | [README-ES.md](./README-ES.md) |
+| Docs index / Índice de docs | [doc/README-EN.md](./doc/README-EN.md) | [doc/README-ES.md](./doc/README-ES.md) |
+| Planning / Planificación | [doc/PLANIFICACION-EN.md](./doc/PLANIFICACION-EN.md) | [doc/PLANIFICACION-ES.md](./doc/PLANIFICACION-ES.md) |
+| Flow diagram / Diagrama de flujo | [doc/diagrama-flujo-EN.md](./doc/diagrama-flujo-EN.md) | [doc/diagrama-flujo-ES.md](./doc/diagrama-flujo-ES.md) |
+| Class diagram / Diagrama de clases | [doc/diagrama-clases-EN.md](./doc/diagrama-clases-EN.md) | [doc/diagrama-clases-ES.md](./doc/diagrama-clases-ES.md) |
+| Flowchart / Flujograma | [doc/flujograma-EN.md](./doc/flujograma-EN.md) | [doc/flujograma-ES.md](./doc/flujograma-ES.md) |
+| SWC audit / Auditoría SWC | [doc/SWC-AUDIT-EN.md](./doc/SWC-AUDIT-EN.md) | [doc/SWC-AUDIT-ES.md](./doc/SWC-AUDIT-ES.md) |
+| Gas | [doc/GAS-EN.md](./doc/GAS-EN.md) | [doc/GAS-ES.md](./doc/GAS-ES.md) |
+| Technical decisions / Decisiones técnicas | [doc/DECISIONES-Y-LOGICA-EN.md](./doc/DECISIONES-Y-LOGICA-EN.md) | [doc/DECISIONES-Y-LOGICA-ES.md](./doc/DECISIONES-Y-LOGICA-ES.md) |
+| Local deploy / Deploy local | [doc/DEPLOY-EN.md](./doc/DEPLOY-EN.md) | [doc/DEPLOY-ES.md](./doc/DEPLOY-ES.md) |
+
+Social media drafts / Borradores de redes: [doc/SOCIAL.md](./doc/SOCIAL.md)
 
 ---
 
-## Demo UI
-
-Tres zonas en `frontend/`:
-
-1. **En venta** — catálogo de listings (comprar / cancelar)  
-2. **Crear NFT** — mintear a la wallet (no publica)  
-3. **Poner a la venta** — publish (approve + `listItem`, 2 firmas)
+## Quick start / Inicio rápido
 
 ```shell
-# Terminal 1
-anvil
-
-# Terminal 2
-forge script script/Deploy.s.sol:Deploy --rpc-url http://127.0.0.1:8545 --broadcast
-
-# Terminal 3
-cd frontend && cp .env.example .env.local
-# completar addresses del deploy
-npm install && npm run dev
-```
-
-Detalle: [`doc/DEPLOY.md`](./doc/DEPLOY.md) · ayuda in-app: `/ayuda`.  
-Tema claro/oscuro: barra superior (`localStorage`: `market-theme`).
-
----
-
-## Setup
-
-```shell
-# Usar Foundry real (no el paquete npm "forge")
 export PATH="$HOME/.foundry/bin:$PATH"
-
-forge install foundry-rs/forge-std@v1.16.2 --no-git
-forge install OpenZeppelin/openzeppelin-contracts@v5.2.0 --no-git
-
 forge build
 forge test
 ```
 
----
+Demo UI: see / ver [DEPLOY-EN](./doc/DEPLOY-EN.md) · [DEPLOY-ES](./doc/DEPLOY-ES.md).
 
-## Estructura
+## Repositories / Repositorios
 
-```
-src/                 # NFTMarketplace + DemoERC721
-test/                # Unit, fuzz, attack
-script/Deploy.s.sol  # Deploy local para la demo
-frontend/            # Next.js App Router
-doc/                 # Plan, SWC, gas, deploy
-lib/                 # Dependencias (gitignored)
-```
-
----
-
-## Comandos útiles
-
-```shell
-forge build
-forge test
-forge test --fuzz-runs 1000
-forge fmt
-forge snapshot
-cd frontend && npm test && npm run dev
-```
+- GitHub: https://github.com/rastrahm/nft-marketplace
+- GitLab: https://gitlab.com/rastrahm/nft-marketplace

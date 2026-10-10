@@ -10,7 +10,7 @@ import {MockERC721} from "./mocks/MockERC721.sol";
 /**
  * @title NFTMarketplacePhase1Test
  * @notice Suite TDD del marketplace: list / cancel / buy + e2e.
- * @dev Módulo cerrado (Fases 0–8). Ver `doc/GAS.md` y `doc/SWC-AUDIT.md`.
+ * @dev Módulo cerrado (Fases 0–8). Ver `doc/GAS-ES.md` y `doc/SWC-AUDIT-ES.md`.
  */
 contract NFTMarketplacePhase1Test is Test {
     uint256 internal constant FEE_BPS = 250; // 2.5%

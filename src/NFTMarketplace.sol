@@ -13,7 +13,7 @@ import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
  * @title NFTMarketplace
  * @notice Marketplace NFT con escrow, fee de protocolo y royalties ERC-2981.
  * @dev Fase 8: listing en 2 slots, `ReentrancyGuard` transient (EIP-1153), CEI + `.call{value}`.
- *      Ver `doc/SWC-AUDIT.md` y `doc/GAS.md`.
+ *      Ver `doc/SWC-AUDIT-ES.md` y `doc/GAS-ES.md`.
  */
 contract NFTMarketplace is INFTMarketplace, IERC721Receiver, ReentrancyGuard {
     /// @notice Denominador de basis points (100% = 10_000).

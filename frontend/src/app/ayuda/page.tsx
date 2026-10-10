@@ -44,7 +44,7 @@ export default function AyudaPage() {
           <li>
             MetaMask: red Anvil (RPC <code>http://127.0.0.1:8545</code>). Para tokens
             del deploy (#1–#3), importá Anvil #0 (
-            <code>0xf39F…2266</code> / key en <code>doc/DEPLOY.md</code>).
+            <code>0xf39F…2266</code> / key en <code>doc/DEPLOY-ES.md</code>).
           </li>
         </ol>
       </section>
@@ -146,8 +146,8 @@ export default function AyudaPage() {
           <div>
             <dt>Docs del repo</dt>
             <dd>
-              Setup completo: <code>doc/DEPLOY.md</code>. Decisiones del
-              contrato: <code>doc/DECISIONES-Y-LOGICA.md</code>.
+              Setup completo: <code>doc/DEPLOY-ES.md</code>. Decisiones del
+              contrato: <code>doc/DECISIONES-Y-LOGICA-ES.md</code>.
             </dd>
           </div>
         </dl>

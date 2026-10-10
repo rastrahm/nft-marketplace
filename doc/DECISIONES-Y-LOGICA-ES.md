@@ -3,7 +3,7 @@
 Documento orientado a **entender el diseño** del módulo 05: qué se eligió, por qué, cómo fluye el protocolo y qué aún se podría optimizar en gas.
 
 Contrato principal: `src/NFTMarketplace.sol`  
-Complementos: [`GAS.md`](./GAS.md) · [`SWC-AUDIT.md`](./SWC-AUDIT.md) · [`flujograma.md`](./flujograma.md)
+Complementos: [`GAS-ES.md`](./GAS-ES.md) · [`SWC-AUDIT-ES.md`](./SWC-AUDIT-ES.md) · [`flujograma-ES.md`](./flujograma-ES.md)
 
 ---
 
@@ -161,7 +161,7 @@ Sí. Lo actual está **bien para el alcance del módulo** (claridad + seguridad 
 
 ### Ya aplicado (baseline post Fase 8)
 
-Ver números en [`GAS.md`](./GAS.md): `listItem` ≈ **−28%**, `getListing` ≈ **−47%**, deploy ≈ **−6.8%**.
+Ver números en [`GAS-ES.md`](./GAS-ES.md): `listItem` ≈ **−28%**, `getListing` ≈ **−47%**, deploy ≈ **−6.8%**.
 
 ### Mejoras con impacto real (no hechas a propósito)
 
@@ -226,7 +226,7 @@ La demo **no** cambia el contrato: solo ordena la UX.
 | Poner a la venta | `approve` + `listItem` (dos txs) |
 
 Catálogo vacío al inicio es normal (no hay listings hasta publicar).  
-Detalle operativo: [`DEPLOY.md`](./DEPLOY.md) · ayuda: `/ayuda`.
+Detalle operativo: [`DEPLOY-ES.md`](./DEPLOY-ES.md) · ayuda: `/ayuda`.
 
 ---
 

@@ -73,6 +73,6 @@ forge snapshot --match-contract 'NFTMarketplacePhase1Test|NFTMarketplaceRoyaltyT
 | `test/unit/NFTMarketplace.royalty.t.sol` | Split + cap ERC-2981 |
 
 Suite completa: **25 tests** Foundry verdes (unit + royalty + attack + fuzz) + Vitest frontend.  
-Demo UI: [`DEPLOY.md`](./DEPLOY.md).
+Demo UI: [`DEPLOY-ES.md`](./DEPLOY-ES.md).
 
-Ver [`SWC-AUDIT.md`](./SWC-AUDIT.md) · índice [`README.md`](./README.md).
+Ver [`SWC-AUDIT-ES.md`](./SWC-AUDIT-ES.md) · índice [`README.md`](./README.md).

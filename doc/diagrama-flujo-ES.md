@@ -1,6 +1,6 @@
 # Diagrama de flujo — NFT Marketplace
 
-Flujos de negocio **as-built** (v1 sin `updateListing`). Ver también [flujograma.md](./flujograma.md) y [DEPLOY.md](./DEPLOY.md) (UI).
+Flujos de negocio **as-built** (v1 sin `updateListing`). Ver también [flujograma-ES.md](./flujograma-ES.md) y [DEPLOY-ES.md](./DEPLOY-ES.md) (UI).
 
 ## 1. Ciclo de vida completo del listing
 

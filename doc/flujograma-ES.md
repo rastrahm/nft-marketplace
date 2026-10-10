@@ -165,7 +165,7 @@ flowchart TD
 Catálogo: eventos `ItemListed` + verificación `getListing`.  
 NFTs propios: escaneo `ownerOf` (demo, IDs 1…64).
 
-Manual: `/ayuda` · setup: [`DEPLOY.md`](./DEPLOY.md).
+Manual: `/ayuda` · setup: [`DEPLOY-ES.md`](./DEPLOY-ES.md).
 
 ## 7. Cómo leer estos diagramas
 

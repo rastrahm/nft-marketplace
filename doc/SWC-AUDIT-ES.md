@@ -1,6 +1,6 @@
 # Auditoría SWC — NFTMarketplace
 
-Verificación de `NFTMarketplace` contra el [SWC Registry](https://swcregistry.io/) (EIP-1470) y principios del monorepo (CEI, ReentrancyGuard custom, custom errors, ERC-2981, escrow seguro). Formato alineado con [`04-erc721/doc/SWC-AUDIT.md`](../../04-erc721/doc/SWC-AUDIT.md).
+Verificación de `NFTMarketplace` contra el [SWC Registry](https://swcregistry.io/) (EIP-1470) y principios del monorepo (CEI, ReentrancyGuard custom, custom errors, ERC-2981, escrow seguro). Formato alineado con [`04-erc721/doc/SWC-AUDIT-ES.md`](../../04-erc721/doc/SWC-AUDIT-ES.md).
 
 > **Nota:** El SWC Registry no se mantiene activamente desde ~2020. Complementar con [SCSVS](https://github.com/ComposableSecurity/SCSVS) y [EEA EthTrust](https://entethalliance.org/specs/ethtrust/).
 
@@ -8,7 +8,7 @@ Verificación de `NFTMarketplace` contra el [SWC Registry](https://swcregistry.i
 **Fecha:** 2026-08-30 (docs actualizados post-demo UI)  
 **Referencia tests:** `test/NFTMarketplace.t.sol`, `test/unit/`, `test/attack/`, `test/fuzz/`  
 **Fase:** 8 + demo frontend ✅  
-**Gas:** [`GAS.md`](./GAS.md) · **Deploy UI:** [`DEPLOY.md`](./DEPLOY.md)
+**Gas:** [`GAS-ES.md`](./GAS-ES.md) · **Deploy UI:** [`DEPLOY-ES.md`](./DEPLOY-ES.md)
 
 ---
 
@@ -168,9 +168,9 @@ Actor: `test/attack/MaliciousActor.sol`.
 - [EIP-1470](https://eips.ethereum.org/EIPS/eip-1470)
 - [EIP-721](https://eips.ethereum.org/EIPS/eip-721)
 - [EIP-2981](https://eips.ethereum.org/EIPS/eip-2981)
-- Plantilla monorepo: [`04-erc721/doc/SWC-AUDIT.md`](../../04-erc721/doc/SWC-AUDIT.md)
+- Plantilla monorepo: [`04-erc721/doc/SWC-AUDIT-ES.md`](../../04-erc721/doc/SWC-AUDIT-ES.md)
 - Campañas: ver sección “Campañas de ataque” arriba
-- Gas: [`GAS.md`](./GAS.md)
-- Deploy / UI: [`DEPLOY.md`](./DEPLOY.md)
-- Plan: [`PLANIFICACION.md`](./PLANIFICACION.md)
+- Gas: [`GAS-ES.md`](./GAS-ES.md)
+- Deploy / UI: [`DEPLOY-ES.md`](./DEPLOY-ES.md)
+- Plan: [`PLANIFICACION-ES.md`](./PLANIFICACION-ES.md)
 - Índice: [`README.md`](./README.md)
